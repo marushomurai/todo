@@ -1,0 +1,158 @@
+package view
+
+import (
+	"fmt"
+	"github.com/yuyanky/todo/internal/model"
+)
+
+type TodayData struct {
+	Date    string
+	Items   []model.PlanItem
+	HasPlan bool
+	Done    int
+	Total   int
+}
+
+templ Today(data TodayData) {
+	@Layout("mañana — today") {
+		if !data.HasPlan {
+			<div class="text-center py-16">
+				<p class="text-stone-400 text-lg mb-4">まだ今日の計画がありません</p>
+				<a href="/plan" class="inline-block bg-stone-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-stone-700 transition-colors">
+					朝の儀式をはじめる
+				</a>
+			</div>
+		} else {
+			<div id="progress-header" class="mb-4 flex items-baseline justify-between">
+				<span class="text-stone-400 text-xs font-mono">{ data.Date }</span>
+				<span class="text-sm font-semibold">
+					{ fmt.Sprintf("%d/%d", data.Done, data.Total) }
+				</span>
+			</div>
+			@ProgressBar(data.Done, data.Total)
+			<ul id="will-do-list" class="space-y-2">
+				for _, item := range data.Items {
+					@TodoItem(item)
+				}
+			</ul>
+			<!-- Quick add to today -->
+			<form
+				hx-post="/api/add-today"
+				hx-target="#will-do-list"
+				hx-swap="beforeend"
+				hx-on::after-request="this.reset()"
+				class="mt-4 flex gap-2"
+			>
+				<input
+					type="text"
+					name="title"
+					placeholder="今日に追加..."
+					required
+					class="flex-1 px-3 py-2 rounded-lg border border-dashed border-stone-300 bg-transparent text-sm focus:outline-none focus:border-stone-400 transition-colors"
+				/>
+				<button
+					type="submit"
+					class="px-3 py-2 text-stone-400 hover:text-stone-900 text-sm font-semibold transition-colors"
+				>
+					+ 追加
+				</button>
+			</form>
+			<script src="/static/sortable.min.js"></script>
+			<script>
+				new Sortable(document.getElementById('will-do-list'), {
+					animation: 200,
+					ghostClass: 'opacity-30',
+					handle: '.drag-handle',
+					onEnd: function() {
+						var ids = [];
+						document.querySelectorAll('#will-do-list > li').forEach(function(li) {
+							ids.push(parseInt(li.dataset.taskId));
+						});
+						fetch('/api/reorder', {
+							method: 'POST',
+							headers: {'Content-Type': 'application/json'},
+							body: JSON.stringify({task_ids: ids})
+						});
+					}
+				});
+			</script>
+		}
+	}
+}
+
+templ ProgressBar(done int, total int) {
+	<div id="progress-bar" class="w-full bg-stone-200 rounded-full h-1.5 mb-6">
+		if total > 0 {
+			<div
+				class="bg-stone-900 h-1.5 rounded-full transition-all duration-300"
+				style={ fmt.Sprintf("width: %d%%", done*100/total) }
+			></div>
+		}
+	</div>
+}
+
+templ ProgressHeader(done int, total int) {
+	<div id="progress-header" hx-swap-oob="true" class="mb-4 flex items-baseline justify-between">
+		<span class="text-stone-400 text-xs font-mono"></span>
+		<span class="text-sm font-semibold">
+			{ fmt.Sprintf("%d/%d", done, total) }
+		</span>
+	</div>
+}
+
+templ ProgressBarOOB(done int, total int) {
+	<div id="progress-bar" hx-swap-oob="true" class="w-full bg-stone-200 rounded-full h-1.5 mb-6">
+		if total > 0 {
+			<div
+				class="bg-stone-900 h-1.5 rounded-full transition-all duration-300"
+				style={ fmt.Sprintf("width: %d%%", done*100/total) }
+			></div>
+		}
+	</div>
+}
+
+templ TodoItem(item model.PlanItem) {
+	<li
+		id={ fmt.Sprintf("item-%d", item.Task.ID) }
+		data-task-id={ fmt.Sprintf("%d", item.Task.ID) }
+		class={ "flex items-center gap-3 p-3 rounded-lg border transition-all",
+			templ.KV("bg-white border-stone-200", item.Disposition != "done"),
+			templ.KV("bg-stone-100 border-stone-100 opacity-60", item.Disposition == "done") }
+	>
+		if item.Disposition == "done" {
+			<button
+				hx-post={ fmt.Sprintf("/api/undone/%d", item.Task.ID) }
+				hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
+				hx-swap="outerHTML"
+				class="w-5 h-5 rounded-full bg-stone-900 flex items-center justify-center flex-shrink-0 cursor-pointer hover:bg-stone-600 transition-colors"
+			>
+				<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+				</svg>
+			</button>
+			<a href={ templ.SafeURL(fmt.Sprintf("/task/%d", item.Task.ID)) } class="line-through text-stone-400 hover:text-stone-600 transition-colors">{ item.Task.Title }</a>
+		} else {
+			<span class="drag-handle cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-500 flex-shrink-0 select-none">⠿</span>
+			<button
+				hx-post={ fmt.Sprintf("/api/done/%d", item.Task.ID) }
+				hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
+				hx-swap="outerHTML"
+				class="w-5 h-5 rounded-full border-2 border-stone-300 hover:border-stone-900 flex-shrink-0 cursor-pointer transition-colors"
+			></button>
+			<a href={ templ.SafeURL(fmt.Sprintf("/task/%d", item.Task.ID)) } class="font-medium hover:text-stone-600 transition-colors">{ item.Task.Title }</a>
+		}
+		<div class="ml-auto flex items-center gap-2">
+			if item.Task.DueDate != "" {
+				<span class="text-stone-400 text-xs">{ item.Task.DueDate }</span>
+			}
+			<span class="text-stone-300 text-xs font-mono">{ fmt.Sprintf("#%d", item.Task.ID) }</span>
+		</div>
+	</li>
+}
+
+// TodoItemWithProgress renders item + OOB progress updates
+templ TodoItemWithProgress(item model.PlanItem, done int, total int) {
+	@TodoItem(item)
+	@ProgressBarOOB(done, total)
+	@ProgressHeader(done, total)
+}

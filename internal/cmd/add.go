@@ -5,16 +5,18 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/yuyanky/todo/internal/store"
 )
 
 func newAddCmd() *cobra.Command {
-	return &cobra.Command{
+	var dueDate string
+	cmd := &cobra.Command{
 		Use:   "add [タスク名]",
 		Short: "inboxにタスクを追加",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			title := strings.Join(args, " ")
-			task, err := taskStore.Add(title)
+			task, err := taskStore.Add(title, store.AddOpts{DueDate: dueDate})
 			if err != nil {
 				return err
 			}
@@ -22,12 +24,14 @@ func newAddCmd() *cobra.Command {
 				printJSON(task)
 				return nil
 			}
-			printLine("#%d %s → inbox", task.ID, task.Title)
+			msg := fmt.Sprintf("#%d %s → inbox", task.ID, task.Title)
+			if task.DueDate != "" {
+				msg += fmt.Sprintf(" (期限: %s)", task.DueDate)
+			}
+			printLine("%s", msg)
 			return nil
 		},
 	}
-}
-
-func init() {
-	_ = fmt.Sprintf // avoid unused import
+	cmd.Flags().StringVar(&dueDate, "due", "", "期限 (YYYY-MM-DD)")
+	return cmd
 }

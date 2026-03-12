@@ -1,0 +1,31 @@
+package view
+
+templ Layout(title string) {
+	<!DOCTYPE html>
+	<html lang="ja">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{ title }</title>
+		<link rel="stylesheet" href="/static/style.css"/>
+		<script src="/static/htmx.min.js"></script>
+	</head>
+	<body class="bg-stone-50 text-stone-900 min-h-screen">
+		<div class="max-w-lg mx-auto px-4 py-8">
+			<header class="mb-8">
+				<h1 class="text-3xl font-black tracking-tight">mañana</h1>
+				<p class="text-stone-400 text-sm mt-1">今日はこれだけやる</p>
+			</header>
+			<nav class="flex gap-4 mb-8 border-b border-stone-200 pb-3">
+				<a href="/" class="nav-link font-semibold text-sm hover:text-stone-900 transition-colors">TODAY</a>
+				<a href="/inbox" class="nav-link font-semibold text-sm hover:text-stone-900 transition-colors">INBOX</a>
+				<a href="/plan" class="nav-link font-semibold text-sm hover:text-stone-900 transition-colors">PLAN</a>
+				<a href="/review" class="nav-link font-semibold text-sm hover:text-stone-900 transition-colors">REVIEW</a>
+			</nav>
+			<main>
+				{ children... }
+			</main>
+		</div>
+	</body>
+	</html>
+}

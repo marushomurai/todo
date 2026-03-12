@@ -73,7 +73,7 @@ func (s *PlanStore) CreatePlan(date string, taskIDs []int64) error {
 func (s *PlanStore) TodayItems(date string) ([]model.PlanItem, error) {
 	query := `
 		SELECT dpi.plan_date, dpi.task_id, dpi.position, dpi.disposition,
-		       t.id, t.title, t.status, t.done_at, t.created_at
+		       t.id, t.title, t.status, t.done_at, t.due_date, t.notes, t.inbox_position, t.created_at
 		FROM daily_plan_items dpi
 		JOIN tasks t ON t.id = dpi.task_id
 		WHERE dpi.plan_date = ?
@@ -88,18 +88,34 @@ func (s *PlanStore) TodayItems(date string) ([]model.PlanItem, error) {
 	for rows.Next() {
 		var pi model.PlanItem
 		var doneAt sql.NullTime
+		var dueDate sql.NullString
 		if err := rows.Scan(
 			&pi.PlanDate, &pi.TaskID, &pi.Position, &pi.Disposition,
-			&pi.Task.ID, &pi.Task.Title, &pi.Task.Status, &doneAt, &pi.Task.CreatedAt,
+			&pi.Task.ID, &pi.Task.Title, &pi.Task.Status, &doneAt, &dueDate, &pi.Task.Notes, &pi.Task.InboxPosition, &pi.Task.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
 		if doneAt.Valid {
 			pi.Task.DoneAt = &doneAt.Time
 		}
+		if dueDate.Valid {
+			pi.Task.DueDate = dueDate.String
+		}
 		items = append(items, pi)
 	}
 	return items, rows.Err()
+}
+
+// AddToTodayPlan adds a new task directly to today's closed plan.
+func (s *PlanStore) AddToTodayPlan(date string, taskID int64) error {
+	// Get next position
+	var maxPos int
+	s.db.QueryRow("SELECT COALESCE(MAX(position), 0) FROM daily_plan_items WHERE plan_date = ?", date).Scan(&maxPos)
+	_, err := s.db.Exec(
+		"INSERT INTO daily_plan_items (plan_date, task_id, position) VALUES (?, ?, ?)",
+		date, taskID, maxPos+1,
+	)
+	return err
 }
 
 // MarkDone marks a plan item as done.
@@ -154,6 +170,41 @@ func (s *PlanStore) Review(date string) (done int, carriedOver int, err error) {
 	}
 
 	return done, carriedOver, tx.Commit()
+}
+
+// UnMarkDone reverts a plan item from done to planned.
+func (s *PlanStore) UnMarkDone(date string, taskID int64) error {
+	res, err := s.db.Exec(
+		"UPDATE daily_plan_items SET disposition = 'planned' WHERE plan_date = ? AND task_id = ? AND disposition = 'done'",
+		date, taskID,
+	)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("task #%d not done in today's plan", taskID)
+	}
+	return nil
+}
+
+// Reorder updates positions of plan items.
+func (s *PlanStore) Reorder(date string, taskIDs []int64) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for i, tid := range taskIDs {
+		_, err := tx.Exec(
+			"UPDATE daily_plan_items SET position = ? WHERE plan_date = ? AND task_id = ?",
+			i+1, date, tid,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 // AutoFixYesterday carries over any unreviewed past plans' items.

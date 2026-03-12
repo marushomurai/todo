@@ -33,5 +33,15 @@ func Open(path string) (*sql.DB, error) {
 		db.Close()
 		return nil, fmt.Errorf("migrate: %w", err)
 	}
+	// Incremental migrations (safe to re-run)
+	for _, m := range migrations {
+		db.Exec(m) // ignore "duplicate column" errors
+	}
 	return db, nil
+}
+
+var migrations = []string{
+	"ALTER TABLE tasks ADD COLUMN due_date TEXT",
+	"ALTER TABLE tasks ADD COLUMN inbox_position INTEGER NOT NULL DEFAULT 0",
+	"ALTER TABLE tasks ADD COLUMN notes TEXT NOT NULL DEFAULT ''",
 }

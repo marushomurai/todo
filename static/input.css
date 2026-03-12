@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@source "../internal/view/";
+
+@theme {
+  --font-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+}
+
+/* Active nav link */
+.nav-link {
+  color: var(--color-stone-400);
+}
+.nav-link[aria-current="page"],
+.nav-link.active {
+  color: var(--color-stone-900);
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  accent-color: var(--color-stone-900);
+}

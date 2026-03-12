@@ -27,11 +27,14 @@ const (
 )
 
 type Task struct {
-	ID        int64      `json:"id"`
-	Title     string     `json:"title"`
-	Status    Status     `json:"status"`
-	DoneAt    *time.Time `json:"done_at,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
+	ID            int64      `json:"id"`
+	Title         string     `json:"title"`
+	Status        Status     `json:"status"`
+	DoneAt        *time.Time `json:"done_at,omitempty"`
+	DueDate       string     `json:"due_date,omitempty"`
+	Notes         string     `json:"notes,omitempty"`
+	InboxPosition int        `json:"inbox_position"`
+	CreatedAt     time.Time  `json:"created_at"`
 }
 
 type DailyPlan struct {

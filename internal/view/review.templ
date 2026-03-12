@@ -1,0 +1,87 @@
+package view
+
+import (
+	"fmt"
+	"github.com/yuyanky/todo/internal/model"
+)
+
+type ReviewData struct {
+	Date        string
+	Items       []model.PlanItem
+	HasPlan     bool
+	IsReviewed  bool
+	Done        int
+	CarriedOver int
+	Total       int
+}
+
+templ Review(data ReviewData) {
+	@Layout("mañana — review") {
+		if !data.HasPlan {
+			<div class="text-center py-16">
+				<p class="text-stone-400 text-lg mb-4">今日はまだ計画がありません</p>
+				<a href="/plan" class="inline-block bg-stone-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-stone-700 transition-colors">
+					計画する
+				</a>
+			</div>
+		} else if !data.IsReviewed {
+			<p class="text-stone-500 text-sm mb-4">今日の振り返りをしましょう</p>
+			<ul class="space-y-2 mb-6">
+				for _, item := range data.Items {
+					<li class={ "flex items-center gap-3 p-3 rounded-lg border",
+						templ.KV("bg-white border-stone-200", item.Disposition != "done"),
+						templ.KV("bg-stone-100 border-stone-100 opacity-60", item.Disposition == "done") }>
+						if item.Disposition == "done" {
+							<div class="w-5 h-5 rounded-full bg-stone-900 flex items-center justify-center flex-shrink-0">
+								<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+								</svg>
+							</div>
+							<span class="line-through text-stone-400 text-sm">{ item.Task.Title }</span>
+						} else {
+							<div class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></div>
+							<span class="text-sm font-medium">{ item.Task.Title }</span>
+							<span class="ml-auto text-amber-500 text-xs">→ inbox</span>
+						}
+					</li>
+				}
+			</ul>
+			<form method="POST" action="/api/review">
+				<button
+					type="submit"
+					class="w-full py-3 bg-stone-900 text-white rounded-lg font-semibold hover:bg-stone-700 transition-colors"
+				>
+					振り返りを完了する
+				</button>
+			</form>
+		} else {
+			<div class="text-center py-8">
+				<div class="text-6xl font-black mb-2">
+					if data.Total > 0 {
+						{ fmt.Sprintf("%.0f%%", float64(data.Done)*100/float64(data.Total)) }
+					}
+				</div>
+				<p class="text-stone-400 text-sm mb-6">
+					{ fmt.Sprintf("%d/%d 完了", data.Done, data.Total) }
+					if data.CarriedOver > 0 {
+						{ fmt.Sprintf(" · %d件 inbox戻し", data.CarriedOver) }
+					}
+				</p>
+				<ul class="space-y-2 mb-6 text-left">
+					for _, item := range data.Items {
+						<li class="flex items-center gap-3 p-3 rounded-lg bg-stone-100">
+							if item.Disposition == "done" {
+								<span class="text-stone-400 text-sm">✓</span>
+								<span class="line-through text-stone-400 text-sm">{ item.Task.Title }</span>
+							} else {
+								<span class="text-amber-500 text-sm">→</span>
+								<span class="text-stone-500 text-sm">{ item.Task.Title }</span>
+							}
+						</li>
+					}
+				</ul>
+				<p class="text-stone-300 text-xs">おつかれさまでした</p>
+			</div>
+		}
+	}
+}

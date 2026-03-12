@@ -1,0 +1,96 @@
+package view
+
+import (
+	"fmt"
+	"github.com/yuyanky/todo/internal/model"
+)
+
+type InboxData struct {
+	Tasks []*model.Task
+}
+
+templ Inbox(data InboxData) {
+	@Layout("mañana — inbox") {
+		<!-- Add task form -->
+		<form
+			hx-post="/api/add"
+			hx-target="#inbox-list"
+			hx-swap="beforeend"
+			hx-on::after-request="this.reset()"
+			class="flex flex-col gap-2 mb-6"
+		>
+			<div class="flex gap-2">
+				<input
+					type="text"
+					name="title"
+					placeholder="新しいタスク..."
+					required
+					class="flex-1 px-4 py-2.5 rounded-lg border border-stone-200 bg-white text-sm focus:outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-colors"
+				/>
+				<input
+					type="date"
+					name="due_date"
+					class="px-3 py-2.5 rounded-lg border border-stone-200 bg-white text-sm text-stone-500 focus:outline-none focus:border-stone-400 transition-colors"
+				/>
+				<button
+					type="submit"
+					class="px-4 py-2.5 bg-stone-900 text-white rounded-lg text-sm font-semibold hover:bg-stone-700 transition-colors"
+				>
+					追加
+				</button>
+			</div>
+		</form>
+		if len(data.Tasks) == 0 {
+			<p id="inbox-empty" class="text-stone-400 text-center py-8">inboxは空です</p>
+		}
+		<ul id="inbox-list" class="space-y-2">
+			for _, task := range data.Tasks {
+				@InboxItem(task)
+			}
+		</ul>
+		<script src="/static/sortable.min.js"></script>
+		<script>
+			new Sortable(document.getElementById('inbox-list'), {
+				animation: 200,
+				ghostClass: 'opacity-30',
+				handle: '.drag-handle',
+				onEnd: function() {
+					var ids = [];
+					document.querySelectorAll('#inbox-list > li').forEach(function(li) {
+						ids.push(parseInt(li.dataset.taskId));
+					});
+					fetch('/api/reorder-inbox', {
+						method: 'POST',
+						headers: {'Content-Type': 'application/json'},
+						body: JSON.stringify({task_ids: ids})
+					});
+				}
+			});
+		</script>
+	}
+}
+
+templ InboxItem(task *model.Task) {
+	<li data-task-id={ fmt.Sprintf("%d", task.ID) } class="flex items-center gap-3 p-3 rounded-lg border border-stone-200 bg-white">
+		<span class="drag-handle cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-500 flex-shrink-0 select-none">⠿</span>
+		<div class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></div>
+		<a href={ templ.SafeURL(fmt.Sprintf("/task/%d", task.ID)) } class="font-medium text-sm hover:text-stone-600 transition-colors">{ task.Title }</a>
+		if task.DueDate != "" {
+			<span class="text-stone-400 text-xs">{ task.DueDate }</span>
+		}
+		<div class="ml-auto flex items-center gap-2">
+			<span class="text-stone-300 text-xs font-mono">{ fmt.Sprintf("#%d", task.ID) }</span>
+			<button
+				hx-post={ fmt.Sprintf("/api/delete/%d", task.ID) }
+				hx-target="closest li"
+				hx-swap="outerHTML"
+				hx-confirm="削除しますか？"
+				class="text-stone-300 hover:text-red-500 transition-colors"
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+				</svg>
+			</button>
+		</div>
+	</li>
+}

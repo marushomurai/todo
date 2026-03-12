@@ -1,0 +1,59 @@
+package view
+
+import (
+	"fmt"
+	"github.com/yuyanky/todo/internal/model"
+)
+
+type PlanData struct {
+	Tasks       []*model.Task
+	AlreadyDone bool
+	Date        string
+}
+
+templ Plan(data PlanData) {
+	@Layout("mañana — plan") {
+		if data.AlreadyDone {
+			<div class="text-center py-16">
+				<p class="text-stone-400 text-lg mb-2">今日はもう計画済みです</p>
+				<p class="text-stone-300 text-sm mb-6">{ data.Date }</p>
+				<a href="/" class="inline-block bg-stone-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-stone-700 transition-colors">
+					TODAY を見る
+				</a>
+			</div>
+		} else if len(data.Tasks) == 0 {
+			<div class="text-center py-16">
+				<p class="text-stone-400 text-lg mb-4">inboxが空です</p>
+				<a href="/inbox" class="inline-block bg-stone-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-stone-700 transition-colors">
+					タスクを追加する
+				</a>
+			</div>
+		} else {
+			<form method="POST" action="/api/plan">
+				<p class="text-stone-500 text-sm mb-4">今日やるタスクを選んでください</p>
+				<ul class="space-y-2 mb-6">
+					for _, task := range data.Tasks {
+						<li class="flex items-center gap-3 p-3 rounded-lg border border-stone-200 bg-white hover:border-stone-400 transition-colors">
+							<input
+								type="checkbox"
+								name="task_ids"
+								value={ fmt.Sprintf("%d", task.ID) }
+								class="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-400"
+							/>
+							<span class="font-medium text-sm">{ task.Title }</span>
+							<span class="ml-auto text-stone-300 text-xs font-mono">{ fmt.Sprintf("#%d", task.ID) }</span>
+						</li>
+					}
+				</ul>
+				<div class="flex gap-3">
+					<button
+						type="submit"
+						class="flex-1 py-3 bg-stone-900 text-white rounded-lg font-semibold hover:bg-stone-700 transition-colors"
+					>
+						リストを閉じる
+					</button>
+				</div>
+			</form>
+		}
+	}
+}
