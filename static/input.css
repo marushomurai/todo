@@ -58,23 +58,13 @@ input[type="checkbox"] {
   }
 }
 
-/* ── Task card hover ── */
-.task-card {
-  transition: transform 0.1s ease, border-color 0.1s ease;
-}
-.task-card:hover {
-  transform: translateY(-1px);
-  border-color: var(--color-stone-300);
-}
-
 /* ── Checkbox circle pulse ── */
 .checkbox-circle:hover {
-  box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-stone-900) 10%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-stone-900) 8%, transparent);
 }
 
-/* ── Plan card click area ── */
-.plan-card:has(input:checked) {
-  border-color: var(--color-stone-400);
+/* ── Plan row checked state ── */
+.plan-row:has(input:checked) {
   background-color: var(--color-stone-50);
 }
 

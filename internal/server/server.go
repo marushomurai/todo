@@ -160,7 +160,7 @@ func (s *Server) handleAPIAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	plan, _ := s.plans.GetPlan(today())
-	render(w, r, view.InboxCard(task, plan != nil))
+	render(w, r, view.InboxRow(task, plan != nil))
 }
 
 // handleAPIDone + OOB progress bar update
@@ -217,7 +217,7 @@ func (s *Server) renderItemWithProgress(w http.ResponseWriter, r *http.Request, 
 
 	for _, item := range items {
 		if item.TaskID == id {
-			render(w, r, view.TodoCardWithProgress(item, done, total))
+			render(w, r, view.TodoRowWithProgress(item, done, total))
 			return
 		}
 	}
@@ -365,7 +365,7 @@ func (s *Server) handleAPIAddToday(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, item := range items {
 		if item.TaskID == task.ID {
-			render(w, r, view.TodoCardWithProgress(item, done, total))
+			render(w, r, view.TodoRowWithProgress(item, done, total))
 			return
 		}
 	}
@@ -383,7 +383,7 @@ func (s *Server) handleAPIInboxEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	plan, _ := s.plans.GetPlan(today())
-	render(w, r, view.InboxCardEdit(task, plan != nil))
+	render(w, r, view.InboxRowEdit(task, plan != nil))
 }
 
 func (s *Server) handleAPIInboxEditSave(w http.ResponseWriter, r *http.Request) {
@@ -409,7 +409,7 @@ func (s *Server) handleAPIInboxEditSave(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	plan, _ := s.plans.GetPlan(today())
-	render(w, r, view.InboxCard(task, plan != nil))
+	render(w, r, view.InboxRow(task, plan != nil))
 }
 
 func (s *Server) handleAPIInboxItem(w http.ResponseWriter, r *http.Request) {
@@ -424,7 +424,7 @@ func (s *Server) handleAPIInboxItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	plan, _ := s.plans.GetPlan(today())
-	render(w, r, view.InboxCard(task, plan != nil))
+	render(w, r, view.InboxRow(task, plan != nil))
 }
 
 func (s *Server) handleAPIMoveToday(w http.ResponseWriter, r *http.Request) {
@@ -501,11 +501,11 @@ func (s *Server) handleAPITodayEdit(w http.ResponseWriter, r *http.Request) {
 	items, _ := s.plans.TodayItems(date)
 	for _, item := range items {
 		if item.TaskID == id {
-			render(w, r, view.TodoCardEdit(item))
+			render(w, r, view.TodoRowEdit(item))
 			return
 		}
 	}
-	render(w, r, view.TodoCardEdit(model.PlanItem{
+	render(w, r, view.TodoRowEdit(model.PlanItem{
 		TaskID:      task.ID,
 		Disposition: "planned",
 		Task:        *task,
@@ -537,7 +537,7 @@ func (s *Server) handleAPITodayEditSave(w http.ResponseWriter, r *http.Request) 
 	items, _ := s.plans.TodayItems(date)
 	for _, item := range items {
 		if item.TaskID == id {
-			render(w, r, view.TodoCard(item))
+			render(w, r, view.TodoRow(item))
 			return
 		}
 	}
@@ -553,7 +553,7 @@ func (s *Server) handleAPITodayItem(w http.ResponseWriter, r *http.Request) {
 	items, _ := s.plans.TodayItems(date)
 	for _, item := range items {
 		if item.TaskID == id {
-			render(w, r, view.TodoCard(item))
+			render(w, r, view.TodoRow(item))
 			return
 		}
 	}
