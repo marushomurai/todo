@@ -64,25 +64,25 @@ func Today(data TodayData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if len(data.InboxTasks) == 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"text-center py-20\"><div class=\"w-16 h-16 mx-auto mb-6 rounded-full bg-stone-200 flex items-center justify-center\"><svg class=\"w-7 h-7 text-stone-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4\"></path></svg></div><p class=\"text-stone-500 text-base mb-2\">inbox は空です</p><p class=\"text-stone-400 text-xs mb-8\">気になることが出たらここに置きます</p><a href=\"/inbox\" class=\"inline-block bg-stone-900 text-white px-8 py-3 rounded-xl font-semibold text-sm hover:bg-stone-700 transition-all hover:shadow-lg active:scale-[0.98]\">タスクを追加する</a></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"text-center py-20\"><p class=\"text-stone-400 text-sm mb-2\">inbox は空です</p><p class=\"text-stone-300 text-xs mb-8\">気になることが出たらここに置きます</p><a href=\"/inbox\" class=\"inline-block bg-stone-900 text-white px-6 py-3 rounded-lg font-semibold text-sm hover:bg-stone-700 transition-colors active:scale-[0.98]\">タスクを追加する</a></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<form method=\"POST\" action=\"/api/plan\" id=\"plan-form\"><div class=\"mb-8\"><p class=\"text-xl font-semibold mb-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<form method=\"POST\" action=\"/api/plan\" id=\"plan-form\"><div class=\"mb-6\"><p class=\"text-lg mb-0.5\" style=\"font-family: 'Outfit', sans-serif; font-weight: 600;\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var3 string
 					templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(data.Greeting)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 40, Col: 59}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 35, Col: 108}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><p class=\"text-stone-400 text-sm\">今日はこれだけやるものを選びます</p></div><ul class=\"space-y-3 mb-6\" id=\"plan-list\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><p class=\"text-stone-400 text-xs\">今日やるものを選んでください</p></div><ul class=\"grid grid-cols-2 gap-2 mb-6\" id=\"plan-list\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -92,33 +92,33 @@ func Today(data TodayData) templ.Component {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</ul><div id=\"plan-count\" class=\"text-center text-stone-400 text-sm mb-6\">チェックして選んでください</div><button type=\"submit\" class=\"w-full py-4 bg-stone-900 text-white rounded-2xl font-bold text-base hover:bg-stone-700 transition-all shadow-sm hover:shadow-lg active:scale-[0.99]\" style=\"font-family: 'Outfit', sans-serif;\">今日のリストを閉じる</button><p class=\"text-center text-stone-300 text-xs mt-3\">選んだら、今日はこれだけに集中します</p></form><script>\n\t\t\t\t\tdocument.getElementById('plan-list').addEventListener('change', function() {\n\t\t\t\t\t\tvar checked = document.querySelectorAll('#plan-list input[type=\"checkbox\"]:checked').length;\n\t\t\t\t\t\tvar el = document.getElementById('plan-count');\n\t\t\t\t\t\tif (checked === 0) {\n\t\t\t\t\t\t\tel.textContent = 'チェックして選んでください';\n\t\t\t\t\t\t\tel.className = 'text-center text-stone-400 text-sm mb-6';\n\t\t\t\t\t\t} else if (checked > 5) {\n\t\t\t\t\t\t\tel.textContent = checked + '件選択中 — 少し多いかもしれません';\n\t\t\t\t\t\t\tel.className = 'text-center text-amber-600 text-sm mb-6';\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tel.textContent = checked + '件選択中';\n\t\t\t\t\t\t\tel.className = 'text-center text-stone-500 text-sm mb-6 font-medium';\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t</script>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</ul><div id=\"plan-count\" class=\"text-center text-stone-400 text-xs mb-5\">チェックして選んでください</div><button type=\"submit\" class=\"w-full py-3.5 bg-stone-900 text-white rounded-lg font-semibold text-sm hover:bg-stone-700 transition-colors active:scale-[0.99]\" style=\"font-family: 'Outfit', sans-serif;\">今日のリストを閉じる</button><p class=\"text-center text-stone-300 text-[11px] mt-2\">選んだら、今日はこれだけに集中します</p></form><script>\n\t\t\t\t\tdocument.getElementById('plan-list').addEventListener('change', function() {\n\t\t\t\t\t\tvar checked = document.querySelectorAll('#plan-list input[type=\"checkbox\"]:checked').length;\n\t\t\t\t\t\tvar el = document.getElementById('plan-count');\n\t\t\t\t\t\tif (checked === 0) {\n\t\t\t\t\t\t\tel.textContent = 'チェックして選んでください';\n\t\t\t\t\t\t\tel.className = 'text-center text-stone-400 text-xs mb-5';\n\t\t\t\t\t\t} else if (checked > 5) {\n\t\t\t\t\t\t\tel.textContent = checked + '件選択中 — 少し多いかも';\n\t\t\t\t\t\t\tel.className = 'text-center text-amber-600 text-xs mb-5';\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tel.textContent = checked + '件選択中';\n\t\t\t\t\t\t\tel.className = 'text-center text-stone-500 text-xs mb-5 font-medium';\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t</script>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
 			} else if !data.IsReviewed {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <div id=\"progress-header\" class=\"mb-3 flex items-baseline justify-between\"><span class=\"text-stone-400 text-xs font-mono tracking-wider\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <div id=\"progress-header\" class=\"mb-2 flex items-baseline justify-between\"><span class=\"text-stone-400 text-[11px] font-mono tracking-wider\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(data.Date)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 80, Col: 77}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 75, Col: 81}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span> <span class=\"text-sm font-bold tabular-nums\" style=\"font-family: 'Outfit', sans-serif;\">今日の約束 ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span> <span class=\"text-xs tabular-nums\" style=\"font-family: 'Outfit', sans-serif; font-weight: 600;\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d件", data.Total))
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d/%d", data.Done, data.Total))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 82, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 77, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -132,7 +132,7 @@ func Today(data TodayData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " <ul id=\"will-do-list\" class=\"space-y-3\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " <ul id=\"will-do-list\" class=\"space-y-1.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -142,12 +142,12 @@ func Today(data TodayData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</ul><!-- 例外追加 --> <details class=\"mt-5\"><summary class=\"text-stone-400 text-xs cursor-pointer hover:text-stone-600 transition-colors select-none\">+ 例外として追加...</summary><form hx-post=\"/api/add-today\" hx-target=\"#will-do-list\" hx-swap=\"beforeend\" hx-on::after-request=\"this.reset(); this.closest('details').open = false;\" class=\"mt-3 flex gap-2\"><input type=\"text\" name=\"title\" placeholder=\"今日の約束を増やします...\" required class=\"flex-1 px-4 py-3 rounded-xl border border-dashed border-stone-300 bg-transparent text-sm focus:outline-none focus:border-stone-500 transition-all placeholder:text-stone-300\"> <button type=\"submit\" hx-disabled-elt=\"this\" class=\"px-5 py-3 text-stone-400 hover:text-stone-900 text-sm font-semibold transition-colors\">追加</button></form></details><!-- 振り返りボタン --> <div class=\"mt-10 pt-8 border-t border-stone-200/60\"><p class=\"text-stone-400 text-sm mb-4 text-center\">今日はここまで。1日を閉じましょう</p><form method=\"POST\" action=\"/api/review\"><button type=\"submit\" class=\"w-full py-4 bg-stone-900 text-white rounded-2xl font-bold text-base hover:bg-stone-700 transition-all shadow-sm hover:shadow-lg active:scale-[0.99]\" style=\"font-family: 'Outfit', sans-serif;\">1日を閉じる</button></form></div><script src=\"/static/sortable.min.js\"></script> <script>\n\t\t\t\tnew Sortable(document.getElementById('will-do-list'), {\n\t\t\t\t\tanimation: 200,\n\t\t\t\t\tghostClass: 'opacity-30',\n\t\t\t\t\thandle: '.drag-handle',\n\t\t\t\t\tonEnd: function() {\n\t\t\t\t\t\tvar ids = [];\n\t\t\t\t\t\tdocument.querySelectorAll('#will-do-list > li').forEach(function(li) {\n\t\t\t\t\t\t\tids.push(parseInt(li.dataset.taskId));\n\t\t\t\t\t\t});\n\t\t\t\t\t\tfetch('/api/reorder', {\n\t\t\t\t\t\t\tmethod: 'POST',\n\t\t\t\t\t\t\theaders: {'Content-Type': 'application/json'},\n\t\t\t\t\t\t\tbody: JSON.stringify({task_ids: ids})\n\t\t\t\t\t\t}).then(function() {\n\t\t\t\t\t\t\tvar toast = document.getElementById('save-toast');\n\t\t\t\t\t\t\tif (toast) {\n\t\t\t\t\t\t\t\ttoast.classList.remove('hidden');\n\t\t\t\t\t\t\t\ttoast.classList.add('save-toast');\n\t\t\t\t\t\t\t\tsetTimeout(function() {\n\t\t\t\t\t\t\t\t\ttoast.classList.add('hidden');\n\t\t\t\t\t\t\t\t\ttoast.classList.remove('save-toast');\n\t\t\t\t\t\t\t\t}, 1200);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t});\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t</script> <div id=\"save-toast\" class=\"hidden fixed bottom-6 start end text-center\"><span class=\"inline-block bg-stone-800 text-white text-xs px-4 py-2 rounded-full shadow-lg\">順序を保存</span></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</ul><!-- 例外追加 --> <details class=\"mt-4\"><summary class=\"text-stone-300 text-[11px] cursor-pointer hover:text-stone-500 transition-colors select-none\">+ 例外として追加...</summary><form hx-post=\"/api/add-today\" hx-target=\"#will-do-list\" hx-swap=\"beforeend\" hx-on::after-request=\"this.reset(); this.closest('details').open = false;\" class=\"mt-2 flex gap-2\"><input type=\"text\" name=\"title\" placeholder=\"今日の約束を増やします...\" required class=\"flex-1 px-3 py-2 rounded-lg border border-dashed border-stone-300 bg-transparent text-sm focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-300\"> <button type=\"submit\" hx-disabled-elt=\"this\" class=\"px-3 py-2 text-stone-400 hover:text-stone-900 text-sm transition-colors\">追加</button></form></details><!-- 振り返りボタン --> <div class=\"mt-8 pt-6 border-t border-stone-200/60\"><form method=\"POST\" action=\"/api/review\"><button type=\"submit\" class=\"w-full py-3.5 bg-stone-900 text-white rounded-lg font-semibold text-sm hover:bg-stone-700 transition-colors active:scale-[0.99]\" style=\"font-family: 'Outfit', sans-serif;\">1日を閉じる</button></form></div><script src=\"/static/sortable.min.js\"></script> <script>\n\t\t\t\tnew Sortable(document.getElementById('will-do-list'), {\n\t\t\t\t\tanimation: 150,\n\t\t\t\t\tghostClass: 'opacity-30',\n\t\t\t\t\thandle: '.drag-handle',\n\t\t\t\t\tonEnd: function() {\n\t\t\t\t\t\tvar ids = [];\n\t\t\t\t\t\tdocument.querySelectorAll('#will-do-list > li').forEach(function(li) {\n\t\t\t\t\t\t\tids.push(parseInt(li.dataset.taskId));\n\t\t\t\t\t\t});\n\t\t\t\t\t\tfetch('/api/reorder', {\n\t\t\t\t\t\t\tmethod: 'POST',\n\t\t\t\t\t\t\theaders: {'Content-Type': 'application/json'},\n\t\t\t\t\t\t\tbody: JSON.stringify({task_ids: ids})\n\t\t\t\t\t\t}).then(function() {\n\t\t\t\t\t\t\tvar toast = document.getElementById('save-toast');\n\t\t\t\t\t\t\tif (toast) {\n\t\t\t\t\t\t\t\ttoast.classList.remove('hidden');\n\t\t\t\t\t\t\t\ttoast.classList.add('save-toast');\n\t\t\t\t\t\t\t\tsetTimeout(function() {\n\t\t\t\t\t\t\t\t\ttoast.classList.add('hidden');\n\t\t\t\t\t\t\t\t\ttoast.classList.remove('save-toast');\n\t\t\t\t\t\t\t\t}, 1200);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t});\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t</script> <div id=\"save-toast\" class=\"hidden fixed bottom-6 start end text-center\"><span class=\"inline-block bg-stone-800 text-white text-xs px-4 py-2 rounded-full shadow-lg\">順序を保存</span></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <div class=\"text-center py-10\"><div class=\"text-7xl font-black mb-3 tracking-tighter\" style=\"font-family: 'Outfit', sans-serif;\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <div class=\"text-center py-10\"><div class=\"text-6xl font-black mb-2 tracking-tighter\" style=\"font-family: 'Outfit', sans-serif;\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -155,21 +155,21 @@ func Today(data TodayData) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.0f%%", float64(data.Done)*100/float64(data.Total)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 169, Col: 73}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 163, Col: 73}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div><p class=\"text-stone-400 text-sm mb-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div><p class=\"text-stone-400 text-xs mb-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d/%d 完了", data.Done, data.Total))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 173, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 167, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -180,14 +180,14 @@ func Today(data TodayData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if data.CarriedOver > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<p class=\"text-amber-600 text-xs mb-8\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<p class=\"text-amber-600 text-[11px] mb-6\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var8 string
 					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d件は inbox に戻しました", data.CarriedOver))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 177, Col: 74}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 171, Col: 74}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 					if templ_7745c5c3_Err != nil {
@@ -198,19 +198,19 @@ func Today(data TodayData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<p class=\"text-emerald-700 text-xs mb-8\">すべて完了しました</p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<p class=\"text-emerald-700 text-[11px] mb-6\">すべて完了しました</p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<ul class=\"space-y-2 mb-8 text-left\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<ul class=\"grid grid-cols-2 gap-1.5 mb-8 text-left\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for i, item := range data.Items {
-					var templ_7745c5c3_Var9 = []any{"stagger-item flex items-center gap-3 p-4 rounded-xl transition-all",
-						templ.KV("bg-stone-50", item.Disposition == "done"),
-						templ.KV("bg-amber-50", item.Disposition != "done")}
+					var templ_7745c5c3_Var9 = []any{"stagger-item p-2.5 rounded-lg text-xs transition-all",
+						templ.KV("bg-stone-50 text-stone-400", item.Disposition == "done"),
+						templ.KV("bg-amber-50 text-stone-500", item.Disposition != "done")}
 					templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -233,9 +233,9 @@ func Today(data TodayData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var11 string
-					templ_7745c5c3_Var11, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("animation-delay: %dms", i*80))
+					templ_7745c5c3_Var11, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("animation-delay: %dms", i*60))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 188, Col: 57}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 182, Col: 57}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 					if templ_7745c5c3_Err != nil {
@@ -246,14 +246,14 @@ func Today(data TodayData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					if item.Disposition == "done" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"text-stone-400 text-sm\">✓</span> <span class=\"line-through text-stone-400 text-sm\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"line-through\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var12 string
 						templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.Task.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 192, Col: 75}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 185, Col: 52}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 						if templ_7745c5c3_Err != nil {
@@ -264,14 +264,14 @@ func Today(data TodayData) templ.Component {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"text-amber-500 text-sm\">→</span> <span class=\"text-stone-500 text-sm\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span>→ ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var13 string
 						templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.Task.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 195, Col: 62}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 187, Col: 35}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 						if templ_7745c5c3_Err != nil {
@@ -287,7 +287,7 @@ func Today(data TodayData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</ul><p class=\"text-stone-400 text-xs mb-1\">明日は白紙から始めます</p><p class=\"text-stone-300 text-xs tracking-wide\">おつかれさまでした</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</ul><p class=\"text-stone-300 text-[11px] tracking-wide\">おつかれさまでした</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -323,45 +323,45 @@ func PlanCard(task *model.Task) templ.Component {
 			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<li class=\"plan-card flex items-start gap-4 p-5 rounded-2xl border border-stone-200/60 bg-white shadow-sm cursor-pointer hover:shadow-md transition-all\"><input type=\"checkbox\" name=\"task_ids\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<li class=\"plan-card p-3 rounded-lg border border-stone-200 bg-white cursor-pointer transition-all\"><label class=\"flex items-start gap-2 cursor-pointer\"><input type=\"checkbox\" name=\"task_ids\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 212, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 204, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" class=\"w-5 h-5 mt-0.5 rounded border-stone-300 text-stone-900 focus:ring-stone-500 cursor-pointer flex-shrink-0\"><div class=\"flex-1 min-w-0\"><span class=\"text-base font-semibold block\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" class=\"w-4 h-4 mt-0.5 rounded border-stone-300 text-stone-900 focus:ring-stone-500 cursor-pointer flex-shrink-0\"><div class=\"flex-1 min-w-0\"><span class=\"text-sm block leading-snug\" style=\"font-family: 'Outfit', sans-serif;\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(task.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 216, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 208, Col: 100}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span><div class=\"flex flex-wrap items-center gap-2 mt-1.5 text-xs text-stone-400\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span><div class=\"flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[11px] text-stone-400 leading-tight\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if task.DueDate != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"flex items-center gap-1\"><svg class=\"w-3 h-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z\"></path></svg> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"flex items-center gap-0.5\"><svg class=\"w-2.5 h-2.5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z\"></path></svg> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(task.DueDate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 221, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 213, Col: 21}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -373,14 +373,14 @@ func PlanCard(task *model.Task) templ.Component {
 			}
 		}
 		if task.RequestedBy != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<span class=\"flex items-center gap-1\"><svg class=\"w-3 h-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z\"></path></svg> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(task.RequestedBy)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 227, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 217, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -392,12 +392,12 @@ func PlanCard(task *model.Task) templ.Component {
 			}
 		}
 		if task.Notes != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<span class=\"flex items-center gap-1\"><svg class=\"w-3 h-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"></path></svg> メモあり</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<span class=\"text-stone-300\">memo</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</div></div></li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</div></div></label></li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -426,19 +426,19 @@ func ProgressBar(done int, total int) templ.Component {
 			templ_7745c5c3_Var19 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div id=\"progress-bar\" class=\"w-full bg-stone-200/80 rounded-full h-2.5 mb-8 overflow-hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div id=\"progress-bar\" class=\"w-full bg-stone-200/80 rounded-full h-1.5 mb-6 overflow-hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if total > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"progress-fill h-2.5 rounded-full transition-all duration-500 ease-out\" style=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"progress-fill h-1.5 rounded-full transition-all duration-500 ease-out\" style=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %d%%", done*100/total))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 246, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 233, Col: 54}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -478,14 +478,14 @@ func ProgressHeader(done int, total int) templ.Component {
 			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div id=\"progress-header\" hx-swap-oob=\"true\" class=\"mb-3 flex items-baseline justify-between\"><span class=\"text-stone-400 text-xs font-mono tracking-wider\"></span> <span class=\"text-sm font-bold tabular-nums\" style=\"font-family: 'Outfit', sans-serif;\">今日の約束 ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div id=\"progress-header\" hx-swap-oob=\"true\" class=\"mb-2 flex items-baseline justify-between\"><span class=\"text-stone-400 text-[11px] font-mono tracking-wider\"></span> <span class=\"text-xs tabular-nums\" style=\"font-family: 'Outfit', sans-serif; font-weight: 600;\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var22 string
-		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d件", total))
+		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d/%d", done, total))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 256, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 243, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -520,19 +520,19 @@ func ProgressBarOOB(done int, total int) templ.Component {
 			templ_7745c5c3_Var23 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div id=\"progress-bar\" hx-swap-oob=\"true\" class=\"w-full bg-stone-200/80 rounded-full h-2.5 mb-8 overflow-hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div id=\"progress-bar\" hx-swap-oob=\"true\" class=\"w-full bg-stone-200/80 rounded-full h-1.5 mb-6 overflow-hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if total > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"progress-fill h-2.5 rounded-full transition-all duration-500 ease-out\" style=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"progress-fill h-1.5 rounded-full transition-all duration-500 ease-out\" style=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %d%%", done*100/total))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 266, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 253, Col: 54}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -605,9 +605,9 @@ func TodoCard(item model.PlanItem) templ.Component {
 			templ_7745c5c3_Var26 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var27 = []any{"task-card flex items-start gap-4 p-5 rounded-2xl border transition-all",
-			templ.KV("bg-white border-stone-200/60 shadow-sm hover:shadow-md", item.Disposition != "done"),
-			templ.KV("bg-stone-50 border-stone-100 opacity-65", item.Disposition == "done")}
+		var templ_7745c5c3_Var27 = []any{"task-card flex items-start gap-2.5 p-3 rounded-lg border transition-all",
+			templ.KV("bg-white border-stone-200", item.Disposition != "done"),
+			templ.KV("bg-stone-50 border-stone-100 opacity-60", item.Disposition == "done")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var27...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -619,7 +619,7 @@ func TodoCard(item model.PlanItem) templ.Component {
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("item-%d", item.Task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 279, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 266, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
@@ -632,7 +632,7 @@ func TodoCard(item model.PlanItem) templ.Component {
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", item.Task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 280, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 267, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
@@ -663,7 +663,7 @@ func TodoCard(item model.PlanItem) templ.Component {
 			var templ_7745c5c3_Var31 string
 			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/api/undone/%d", item.Task.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 287, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 274, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 			if templ_7745c5c3_Err != nil {
@@ -676,38 +676,38 @@ func TodoCard(item model.PlanItem) templ.Component {
 			var templ_7745c5c3_Var32 string
 			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#item-%d", item.Task.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 288, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 275, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\" hx-swap=\"outerHTML\" class=\"w-6 h-6 mt-0.5 rounded-full bg-stone-800 flex items-center justify-center flex-shrink-0 cursor-pointer hover:bg-stone-600 transition-colors\"><svg class=\"w-3.5 h-3.5 text-white\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"3\" d=\"M5 13l4 4L19 7\"></path></svg></button><div class=\"flex-1 min-w-0\"><span class=\"line-through text-stone-400 text-base block\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\" hx-swap=\"outerHTML\" class=\"w-5 h-5 mt-0.5 rounded-full bg-stone-700 flex items-center justify-center flex-shrink-0 cursor-pointer hover:bg-stone-500 transition-colors\"><svg class=\"w-3 h-3 text-white\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"3\" d=\"M5 13l4 4L19 7\"></path></svg></button> <span class=\"line-through text-stone-400 text-sm leading-snug\" style=\"font-family: 'Outfit', sans-serif;\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(item.Task.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 297, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 283, Col: 126}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</span></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<span class=\"drag-handle cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-500 flex-shrink-0 select-none mt-1 text-lg\">⠿</span> <button hx-post=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<span class=\"drag-handle cursor-grab active:cursor-grabbing text-stone-200 hover:text-stone-400 flex-shrink-0 select-none text-xs leading-none\">⠿</span> <button hx-post=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/api/done/%d", item.Task.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 302, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 287, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -720,20 +720,20 @@ func TodoCard(item model.PlanItem) templ.Component {
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#item-%d", item.Task.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 303, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 288, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" hx-swap=\"outerHTML\" class=\"checkbox-circle w-6 h-6 mt-0.5 rounded-full border-2 border-stone-300 hover:border-stone-800 flex-shrink-0 cursor-pointer transition-all\"></button><div class=\"flex-1 min-w-0\"><span class=\"text-base font-semibold block cursor-text hover:text-stone-600 transition-colors\" hx-get=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" hx-swap=\"outerHTML\" class=\"checkbox-circle w-5 h-5 mt-0.5 rounded-full border-2 border-stone-300 hover:border-stone-700 flex-shrink-0 cursor-pointer transition-colors\"></button><div class=\"flex-1 min-w-0\"><span class=\"text-sm block leading-snug cursor-text hover:text-stone-500 transition-colors\" style=\"font-family: 'Outfit', sans-serif;\" hx-get=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/api/today-edit/%d", item.Task.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 310, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 296, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -746,7 +746,7 @@ func TodoCard(item model.PlanItem) templ.Component {
 			var templ_7745c5c3_Var37 string
 			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#item-%d", item.Task.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 311, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 297, Col: 54}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
@@ -759,25 +759,25 @@ func TodoCard(item model.PlanItem) templ.Component {
 			var templ_7745c5c3_Var38 string
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(item.Task.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 313, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 299, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</span><div class=\"flex flex-wrap items-center gap-2 mt-1.5 text-xs text-stone-400\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</span><div class=\"flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] text-stone-400 leading-tight\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if item.Task.DueDate != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<span class=\"flex items-center gap-1\"><svg class=\"w-3 h-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z\"></path></svg> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var39 string
 				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(item.Task.DueDate)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 318, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 302, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 				if templ_7745c5c3_Err != nil {
@@ -789,14 +789,14 @@ func TodoCard(item model.PlanItem) templ.Component {
 				}
 			}
 			if item.Task.RequestedBy != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "<span class=\"flex items-center gap-1\"><svg class=\"w-3 h-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z\"></path></svg> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "<span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(item.Task.RequestedBy)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 324, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 305, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
@@ -808,7 +808,7 @@ func TodoCard(item model.PlanItem) templ.Component {
 				}
 			}
 			if item.Task.Notes != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<span class=\"flex items-center gap-1\"><svg class=\"w-3 h-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"></path></svg> メモあり</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<span class=\"text-stone-300\">memo</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -854,7 +854,7 @@ func TodoCardEdit(item model.PlanItem) templ.Component {
 		var templ_7745c5c3_Var42 string
 		templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("item-%d", item.Task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 341, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 318, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 		if templ_7745c5c3_Err != nil {
@@ -867,20 +867,20 @@ func TodoCardEdit(item model.PlanItem) templ.Component {
 		var templ_7745c5c3_Var43 string
 		templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", item.Task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 342, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 319, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "\" class=\"flex items-center gap-3 p-5 rounded-2xl border-2 border-stone-800 bg-white shadow-md\"><form hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "\" class=\"p-3 rounded-lg border-2 border-stone-800 bg-white\"><form hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var44 string
 		templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/api/today-edit/%d", item.Task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 346, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 323, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 		if templ_7745c5c3_Err != nil {
@@ -893,33 +893,33 @@ func TodoCardEdit(item model.PlanItem) templ.Component {
 		var templ_7745c5c3_Var45 string
 		templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#item-%d", item.Task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 347, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 324, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "\" hx-swap=\"outerHTML\" class=\"flex items-center gap-2 flex-1\"><input type=\"text\" name=\"title\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "\" hx-swap=\"outerHTML\" class=\"flex items-center gap-2\"><input type=\"text\" name=\"title\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var46 string
 		templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(item.Task.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 354, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 331, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\" autofocus class=\"flex-1 px-4 py-2.5 text-sm rounded-xl border border-stone-300 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500\"> <button type=\"submit\" class=\"text-xs px-4 py-2.5 rounded-xl bg-stone-900 text-white hover:bg-stone-700 transition-colors font-semibold\">保存</button> <button type=\"button\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\" autofocus class=\"flex-1 px-3 py-2 text-sm rounded-lg border border-stone-300 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500/20\"> <button type=\"submit\" class=\"text-xs px-3 py-2 rounded-lg bg-stone-900 text-white hover:bg-stone-700 transition-colors font-semibold\">保存</button> <button type=\"button\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var47 string
 		templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/api/today-item/%d", item.Task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 363, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 340, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 		if templ_7745c5c3_Err != nil {
@@ -932,13 +932,13 @@ func TodoCardEdit(item model.PlanItem) templ.Component {
 		var templ_7745c5c3_Var48 string
 		templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#item-%d", item.Task.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 364, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/today.templ`, Line: 341, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" hx-swap=\"outerHTML\" class=\"text-xs px-3 py-2.5 rounded-xl text-stone-500 hover:text-stone-900 transition-colors\">取消</button></form></li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" hx-swap=\"outerHTML\" class=\"text-xs px-2 py-2 text-stone-500 hover:text-stone-900 transition-colors\">取消</button></form></li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
