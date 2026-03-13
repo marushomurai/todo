@@ -20,7 +20,7 @@ type TodayData struct {
 templ Today(data TodayData) {
 	@Layout("mañana — today") {
 		if !data.HasPlan {
-			// ── State A: 朝の儀式（plan埋め込み） ──
+			// ── State A: 朝の儀式 ──
 			if len(data.InboxTasks) == 0 {
 				<div class="text-center py-20">
 					<p class="text-stone-400 text-sm mb-2">inbox は空です</p>
@@ -31,22 +31,18 @@ templ Today(data TodayData) {
 				</div>
 			} else {
 				<form method="POST" action="/api/plan" id="plan-form">
-					<div class="mb-5">
-						<p class="text-base" style="font-family: 'Outfit', sans-serif; font-weight: 600;">{ data.Greeting }</p>
-						<p class="text-stone-400 text-xs mt-0.5">今日やるものを選んでください</p>
-					</div>
-					<div class="border border-stone-200 rounded-lg bg-white overflow-hidden mb-5" id="plan-list">
+					<p class="text-stone-400 text-xs mb-4">{ data.Greeting } — 今日やるものを選んでください</p>
+					<div class="list-container mb-5" id="plan-list">
 						for _, task := range data.InboxTasks {
 							@PlanRow(task)
 						}
 					</div>
-					<div id="plan-count" class="text-center text-stone-400 text-xs mb-4">
+					<div id="plan-count" class="text-center text-stone-400 text-[11px] mb-4 tracking-wide">
 						チェックして選んでください
 					</div>
 					<button
 						type="submit"
-						class="w-full py-3 bg-stone-800 text-white rounded-lg text-sm hover:bg-stone-700 transition-colors"
-						style="font-family: 'Outfit', sans-serif; font-weight: 600;"
+						class="submit-btn w-full"
 					>
 						今日のリストを閉じる
 					</button>
@@ -57,13 +53,13 @@ templ Today(data TodayData) {
 						var el = document.getElementById('plan-count');
 						if (checked === 0) {
 							el.textContent = 'チェックして選んでください';
-							el.className = 'text-center text-stone-400 text-xs mb-4';
+							el.className = 'text-center text-stone-400 text-[11px] mb-4 tracking-wide';
 						} else if (checked > 5) {
 							el.textContent = checked + '件選択 — 少し多いかも';
-							el.className = 'text-center text-amber-600 text-xs mb-4';
+							el.className = 'text-center text-amber-600 text-[11px] mb-4 tracking-wide';
 						} else {
 							el.textContent = checked + '件選択';
-							el.className = 'text-center text-stone-500 text-xs mb-4 font-medium';
+							el.className = 'text-center text-stone-600 text-[11px] mb-4 tracking-wide font-medium';
 						}
 					});
 				</script>
@@ -71,21 +67,21 @@ templ Today(data TodayData) {
 		} else if !data.IsReviewed {
 			// ── State B/C: 実行中 ──
 			<div id="progress-header" class="mb-2 flex items-baseline justify-between">
-				<span class="text-stone-400 text-[11px] font-mono tracking-wide">{ data.Date }</span>
-				<span class="text-xs tracking-wide" style="font-family: 'Outfit', sans-serif; font-weight: 600;">
+				<span class="text-stone-300 text-[11px] font-mono">{ data.Date }</span>
+				<span class="text-[11px] text-stone-400 tabular-nums tracking-wide" style="font-family: 'Outfit', sans-serif;">
 					{ fmt.Sprintf("%d / %d", data.Done, data.Total) }
 				</span>
 			</div>
 			@ProgressBar(data.Done, data.Total)
-			<div class="border border-stone-200 rounded-lg bg-white overflow-hidden" id="will-do-list">
+			<div class="list-container" id="will-do-list">
 				for _, item := range data.Items {
 					@TodoRow(item)
 				}
 			</div>
 			<!-- 例外追加 -->
 			<details class="mt-4">
-				<summary class="text-stone-300 text-[11px] cursor-pointer hover:text-stone-500 transition-colors select-none">
-					+ 例外として追加...
+				<summary class="text-stone-300 text-[11px] cursor-pointer hover:text-stone-500 transition-colors select-none tracking-wide">
+					+ 例外として追加
 				</summary>
 				<form
 					hx-post="/api/add-today"
@@ -97,27 +93,23 @@ templ Today(data TodayData) {
 					<input
 						type="text"
 						name="title"
-						placeholder="今日の約束を増やします..."
+						placeholder="追加タスク..."
 						required
-						class="flex-1 px-3 py-2 rounded-lg border border-dashed border-stone-300 bg-transparent text-sm focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-300"
+						class="form-input flex-1 border-dashed"
 					/>
 					<button
 						type="submit"
 						hx-disabled-elt="this"
-						class="px-3 py-2 text-stone-400 hover:text-stone-800 text-sm transition-colors"
+						class="px-3 py-2 text-stone-400 hover:text-stone-800 text-xs transition-colors"
 					>
 						追加
 					</button>
 				</form>
 			</details>
-			<!-- 振り返りボタン -->
-			<div class="mt-8 pt-6 border-t border-stone-200/60">
+			<!-- 振り返り -->
+			<div class="mt-10 pt-6 border-t border-stone-100">
 				<form method="POST" action="/api/review">
-					<button
-						type="submit"
-						class="w-full py-3 bg-stone-800 text-white rounded-lg text-sm hover:bg-stone-700 transition-colors"
-						style="font-family: 'Outfit', sans-serif; font-weight: 600;"
-					>
+					<button type="submit" class="submit-btn w-full">
 						1日を閉じる
 					</button>
 				</form>
@@ -137,26 +129,13 @@ templ Today(data TodayData) {
 							method: 'POST',
 							headers: {'Content-Type': 'application/json'},
 							body: JSON.stringify({task_ids: ids})
-						}).then(function() {
-							var toast = document.getElementById('save-toast');
-							if (toast) {
-								toast.classList.remove('hidden');
-								toast.classList.add('save-toast');
-								setTimeout(function() {
-									toast.classList.add('hidden');
-									toast.classList.remove('save-toast');
-								}, 1200);
-							}
 						});
 					}
 				});
 			</script>
-			<div id="save-toast" class="hidden fixed bottom-6 left-0 right-0 text-center">
-				<span class="inline-block bg-stone-800 text-white text-xs px-4 py-2 rounded-full shadow-lg">保存しました</span>
-			</div>
 		} else {
 			// ── State D: 締め完了 ──
-			<div class="text-center py-8">
+			<div class="text-center py-10">
 				<div class="text-5xl font-black mb-2 tracking-tighter" style="font-family: 'Outfit', sans-serif;">
 					if data.Total > 0 {
 						{ fmt.Sprintf("%.0f%%", float64(data.Done)*100/float64(data.Total)) }
@@ -172,7 +151,7 @@ templ Today(data TodayData) {
 				} else {
 					<p class="text-emerald-700 text-[11px] mb-6">すべて完了</p>
 				}
-				<div class="border border-stone-200 rounded-lg bg-white overflow-hidden text-left mb-6">
+				<div class="list-container text-left mb-6">
 					for i, item := range data.Items {
 						<div
 							class={ "stagger-item flex items-center gap-3 px-4 py-2.5 text-sm border-b border-stone-100 last:border-b-0",
@@ -197,19 +176,19 @@ templ Today(data TodayData) {
 }
 
 templ PlanRow(task *model.Task) {
-	<label class="plan-row flex items-start gap-3 px-4 py-3 border-b border-stone-100 last:border-b-0 cursor-pointer hover:bg-stone-50 transition-colors">
+	<label class="plan-row list-row cursor-pointer">
 		<input
 			type="checkbox"
 			name="task_ids"
 			value={ fmt.Sprintf("%d", task.ID) }
-			class="w-4 h-4 mt-0.5 rounded border-stone-300 text-stone-800 focus:ring-stone-500 cursor-pointer flex-shrink-0"
+			class="w-4 h-4 mt-px rounded border-stone-300 text-stone-800 focus:ring-stone-500 cursor-pointer flex-shrink-0"
 		/>
 		<div class="flex-1 min-w-0">
-			<span class="text-sm leading-snug block" style="font-family: 'Outfit', sans-serif;">{ task.Title }</span>
+			<span class="text-sm leading-snug block">{ task.Title }</span>
 			if task.DueDate != "" || task.RequestedBy != "" || task.Notes != "" {
-				<div class="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-stone-400">
+				<div class="meta-row">
 					if task.DueDate != "" {
-						<span class="inline-flex items-center gap-1 bg-stone-100 px-1.5 py-0.5 rounded">{ task.DueDate }</span>
+						<span class="meta-badge">{ task.DueDate }</span>
 					}
 					if task.RequestedBy != "" {
 						<span>{ task.RequestedBy }</span>
@@ -224,10 +203,10 @@ templ PlanRow(task *model.Task) {
 }
 
 templ ProgressBar(done int, total int) {
-	<div id="progress-bar" class="w-full bg-stone-200/80 rounded-full h-1.5 mb-5 overflow-hidden">
+	<div id="progress-bar" class="w-full bg-stone-100 rounded-full h-1 mb-5 overflow-hidden">
 		if total > 0 {
 			<div
-				class="progress-fill h-1.5 rounded-full transition-all duration-500 ease-out"
+				class="progress-fill h-1 rounded-full transition-all duration-500 ease-out"
 				style={ fmt.Sprintf("width: %d%%", done*100/total) }
 			></div>
 		}
@@ -236,18 +215,18 @@ templ ProgressBar(done int, total int) {
 
 templ ProgressHeader(done int, total int) {
 	<div id="progress-header" hx-swap-oob="true" class="mb-2 flex items-baseline justify-between">
-		<span class="text-stone-400 text-[11px] font-mono tracking-wide"></span>
-		<span class="text-xs tracking-wide" style="font-family: 'Outfit', sans-serif; font-weight: 600;">
+		<span class="text-stone-300 text-[11px] font-mono"></span>
+		<span class="text-[11px] text-stone-400 tabular-nums tracking-wide" style="font-family: 'Outfit', sans-serif;">
 			{ fmt.Sprintf("%d / %d", done, total) }
 		</span>
 	</div>
 }
 
 templ ProgressBarOOB(done int, total int) {
-	<div id="progress-bar" hx-swap-oob="true" class="w-full bg-stone-200/80 rounded-full h-1.5 mb-5 overflow-hidden">
+	<div id="progress-bar" hx-swap-oob="true" class="w-full bg-stone-100 rounded-full h-1 mb-5 overflow-hidden">
 		if total > 0 {
 			<div
-				class="progress-fill h-1.5 rounded-full transition-all duration-500 ease-out"
+				class="progress-fill h-1 rounded-full transition-all duration-500 ease-out"
 				style={ fmt.Sprintf("width: %d%%", done*100/total) }
 			></div>
 		}
@@ -263,8 +242,8 @@ templ TodoRow(item model.PlanItem) {
 	<div
 		id={ fmt.Sprintf("item-%d", item.Task.ID) }
 		data-task-id={ fmt.Sprintf("%d", item.Task.ID) }
-		class={ "todo-row group flex items-start gap-2.5 px-4 py-3 border-b border-stone-100 last:border-b-0 transition-colors",
-			templ.KV("hover:bg-stone-50", item.Disposition != "done"),
+		class={ "todo-row group list-row",
+			templ.KV("hover:bg-stone-50/80", item.Disposition != "done"),
 			templ.KV("bg-stone-50/50", item.Disposition == "done") }
 	>
 		if item.Disposition == "done" {
@@ -272,37 +251,32 @@ templ TodoRow(item model.PlanItem) {
 				hx-post={ fmt.Sprintf("/api/undone/%d", item.Task.ID) }
 				hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
 				hx-swap="outerHTML"
-				class="w-[18px] h-[18px] mt-[3px] rounded-full bg-stone-600 flex items-center justify-center flex-shrink-0 cursor-pointer hover:bg-stone-500 transition-colors"
+				class="check-done"
 			>
 				<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
 				</svg>
 			</button>
-			<div class="flex-1 min-w-0">
-				<span class="text-sm text-stone-400 line-through leading-snug block" style="font-family: 'Outfit', sans-serif;">{ item.Task.Title }</span>
-			</div>
+			<span class="text-sm text-stone-400 line-through leading-snug flex-1">{ item.Task.Title }</span>
 		} else {
-			<span class="drag-handle cursor-grab active:cursor-grabbing text-stone-200 group-hover:text-stone-400 flex-shrink-0 select-none text-[10px] mt-[5px] transition-colors">⠿</span>
+			<span class="drag-handle cursor-grab active:cursor-grabbing text-stone-200 group-hover:text-stone-400 flex-shrink-0 select-none text-[10px] transition-colors">⠿</span>
 			<button
 				hx-post={ fmt.Sprintf("/api/done/%d", item.Task.ID) }
 				hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
 				hx-swap="outerHTML"
-				class="checkbox-circle w-[18px] h-[18px] mt-[3px] rounded-full border-[1.5px] border-stone-300 hover:border-stone-700 flex-shrink-0 cursor-pointer transition-colors"
+				class="check-circle"
 			></button>
 			<div class="flex-1 min-w-0">
-				<div class="flex items-start justify-between gap-2">
-					<span
-						class="text-sm leading-snug cursor-text hover:text-stone-500 transition-colors"
-						style="font-family: 'Outfit', sans-serif;"
-						hx-get={ fmt.Sprintf("/api/today-edit/%d", item.Task.ID) }
-						hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
-						hx-swap="outerHTML"
-					>{ item.Task.Title }</span>
-				</div>
+				<span
+					class="text-sm leading-snug block cursor-text hover:text-stone-500 transition-colors"
+					hx-get={ fmt.Sprintf("/api/today-edit/%d", item.Task.ID) }
+					hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
+					hx-swap="outerHTML"
+				>{ item.Task.Title }</span>
 				if item.Task.DueDate != "" || item.Task.RequestedBy != "" || item.Task.Notes != "" {
-					<div class="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-stone-400">
+					<div class="meta-row">
 						if item.Task.DueDate != "" {
-							<span class="inline-flex items-center gap-1 bg-stone-100 px-1.5 py-0.5 rounded text-stone-500">{ item.Task.DueDate }</span>
+							<span class="meta-badge">{ item.Task.DueDate }</span>
 						}
 						if item.Task.RequestedBy != "" {
 							<span>{ item.Task.RequestedBy }</span>
@@ -321,33 +295,25 @@ templ TodoRowEdit(item model.PlanItem) {
 	<div
 		id={ fmt.Sprintf("item-%d", item.Task.ID) }
 		data-task-id={ fmt.Sprintf("%d", item.Task.ID) }
-		class="px-4 py-3 border-b border-stone-100 last:border-b-0 bg-stone-50"
+		class="list-row bg-stone-50/80"
 	>
 		<form
 			hx-post={ fmt.Sprintf("/api/today-edit/%d", item.Task.ID) }
 			hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
 			hx-swap="outerHTML"
-			class="flex items-center gap-2"
+			hx-trigger="submit"
+			class="flex-1"
 		>
 			<input
 				type="text"
 				name="title"
 				value={ item.Task.Title }
 				autofocus
-				class="flex-1 px-3 py-1.5 text-sm rounded-lg border border-stone-300 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500/20"
+				class="inline-edit"
+				onkeydown="if(event.key==='Escape'){htmx.ajax('GET',this.closest('form').querySelector('[data-cancel]')?.dataset.cancel||'',{target:this.closest('[data-task-id]'),swap:'outerHTML'});}"
+				onblur="this.closest('form').requestSubmit();"
+				data-cancel={ fmt.Sprintf("/api/today-item/%d", item.Task.ID) }
 			/>
-			<button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-stone-800 text-white hover:bg-stone-700 transition-colors">
-				保存
-			</button>
-			<button
-				type="button"
-				hx-get={ fmt.Sprintf("/api/today-item/%d", item.Task.ID) }
-				hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
-				hx-swap="outerHTML"
-				class="text-xs px-2 py-1.5 text-stone-400 hover:text-stone-700 transition-colors"
-			>
-				取消
-			</button>
 		</form>
 	</div>
 }
