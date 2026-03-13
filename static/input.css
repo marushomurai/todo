@@ -5,16 +5,118 @@
   --font-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
 }
 
-/* Active nav link */
-.nav-link {
+/* ── Nav pill (2-tab) ── */
+.nav-pill {
+  display: inline-block;
+  padding: 0.625rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   color: var(--color-stone-400);
+  border-radius: 0.75rem;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
 }
-.nav-link[aria-current="page"],
-.nav-link.active {
-  color: var(--color-stone-900);
+.nav-pill:hover {
+  color: var(--color-stone-700);
+  background-color: var(--color-stone-200);
+}
+.nav-pill[aria-current="page"],
+.nav-pill.active {
+  color: var(--color-white);
+  background-color: var(--color-stone-900);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
 }
 
-/* Checkbox styling */
+/* ── Checkbox ── */
 input[type="checkbox"] {
   accent-color: var(--color-stone-900);
+}
+
+/* ── Progress bar fill ── */
+.progress-fill {
+  background: linear-gradient(90deg, var(--color-stone-700), var(--color-stone-900));
+}
+
+/* ── HTMX swap animations ── */
+.htmx-added {
+  animation: fade-slide-in 0.25s ease-out;
+}
+.htmx-swapping {
+  opacity: 0;
+  transition: opacity 0.15s ease-in;
+}
+
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Task card hover ── */
+.task-card {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.task-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ── Checkbox circle pulse ── */
+.checkbox-circle:hover {
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-stone-900) 10%, transparent);
+}
+
+/* ── Plan card click area ── */
+.plan-card:has(input:checked) {
+  border-color: var(--color-stone-400);
+  background-color: var(--color-stone-50);
+}
+
+/* ── Done settle animation ── */
+.task-done-enter {
+  animation: done-settle 0.3s ease-out;
+}
+@keyframes done-settle {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.995); }
+  100% { transform: scale(1); }
+}
+
+/* ── Reorder save toast ── */
+.save-toast {
+  animation: toast-fade 1.2s ease-out forwards;
+}
+@keyframes toast-fade {
+  0% { opacity: 0; transform: translateY(4px); }
+  15% { opacity: 1; transform: translateY(0); }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Stagger fade-in for review items ── */
+.stagger-item {
+  opacity: 0;
+  animation: fade-slide-in 0.3s ease-out forwards;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .htmx-added {
+    animation: none;
+  }
+  .task-card {
+    transition: none;
+  }
+  .stagger-item {
+    opacity: 1;
+    animation: none;
+  }
+  .save-toast {
+    animation: none;
+  }
 }

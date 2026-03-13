@@ -36,13 +36,13 @@ func Layout(title string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/layout.templ`, Line: 9, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/view/layout.templ`, Line: 9, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"/static/htmx.min.js\"></script></head><body class=\"bg-stone-50 text-stone-900 min-h-screen\"><div class=\"max-w-lg mx-auto px-4 py-8\"><header class=\"mb-8\"><h1 class=\"text-3xl font-black tracking-tight\">mañana</h1><p class=\"text-stone-400 text-sm mt-1\">今日はこれだけやる</p></header><nav class=\"flex gap-4 mb-8 border-b border-stone-200 pb-3\"><a href=\"/\" class=\"nav-link font-semibold text-sm hover:text-stone-900 transition-colors\">TODAY</a> <a href=\"/inbox\" class=\"nav-link font-semibold text-sm hover:text-stone-900 transition-colors\">INBOX</a> <a href=\"/plan\" class=\"nav-link font-semibold text-sm hover:text-stone-900 transition-colors\">PLAN</a> <a href=\"/review\" class=\"nav-link font-semibold text-sm hover:text-stone-900 transition-colors\">REVIEW</a></nav><main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin><link rel=\"preload\" as=\"style\" href=\"https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap\"><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"/static/htmx.min.js\"></script></head><body class=\"bg-stone-100 text-stone-800 min-h-screen\"><div class=\"max-w-lg mx-auto px-5 py-10\"><header class=\"mb-8\"><h1 class=\"text-4xl font-black tracking-tighter\" style=\"font-family: 'Outfit', sans-serif;\">mañana</h1><p class=\"text-stone-400 text-xs mt-1.5 tracking-wide uppercase\">今日はこれだけやる</p></header><nav class=\"flex gap-2 mb-8\" id=\"main-nav\"><a href=\"/\" class=\"nav-pill flex-1 text-center\">TODAY</a> <a href=\"/inbox\" class=\"nav-pill flex-1 text-center\">INBOX</a></nav><script>\n\t\t\t\t\t(function(){\n\t\t\t\t\t\tvar p = location.pathname;\n\t\t\t\t\t\tdocument.querySelectorAll('#main-nav a').forEach(function(a) {\n\t\t\t\t\t\t\tvar h = a.getAttribute('href');\n\t\t\t\t\t\t\tif (h === '/' ? (p === '/' || p.startsWith('/task/')) : p.startsWith(h)) {\n\t\t\t\t\t\t\t\ta.setAttribute('aria-current', 'page');\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t});\n\t\t\t\t\t})();\n\t\t\t\t</script><main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

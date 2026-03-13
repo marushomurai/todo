@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/yuyanky/todo/internal/model"
 	"github.com/yuyanky/todo/internal/store"
 	"github.com/yuyanky/todo/internal/view"
 )
@@ -35,6 +36,18 @@ func today() string {
 	return time.Now().Format("2006-01-02")
 }
 
+func greeting() string {
+	h := time.Now().Hour()
+	switch {
+	case h >= 5 && h < 12:
+		return "おはようございます"
+	case h >= 12 && h < 18:
+		return "こんにちは"
+	default:
+		return "おつかれさまです"
+	}
+}
+
 func (s *Server) routes(staticDir string) {
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
 
@@ -55,29 +68,50 @@ func (s *Server) routes(staticDir string) {
 	s.mux.HandleFunc("POST /api/reorder-inbox", s.handleAPIReorderInbox)
 	s.mux.HandleFunc("POST /api/delete/{id}", s.handleAPIDelete)
 	s.mux.HandleFunc("POST /api/add-today", s.handleAPIAddToday)
+	s.mux.HandleFunc("POST /api/move-today/{id}", s.handleAPIMoveToday)
+	s.mux.HandleFunc("GET /api/inbox-edit/{id}", s.handleAPIInboxEdit)
+	s.mux.HandleFunc("POST /api/inbox-edit/{id}", s.handleAPIInboxEditSave)
+	s.mux.HandleFunc("GET /api/inbox-item/{id}", s.handleAPIInboxItem)
+	s.mux.HandleFunc("POST /api/remove-today/{id}", s.handleAPIRemoveToday)
+	s.mux.HandleFunc("GET /api/today-edit/{id}", s.handleAPITodayEdit)
+	s.mux.HandleFunc("POST /api/today-edit/{id}", s.handleAPITodayEditSave)
+	s.mux.HandleFunc("GET /api/today-item/{id}", s.handleAPITodayItem)
 }
 
 func (s *Server) handleToday(w http.ResponseWriter, r *http.Request) {
 	date := today()
 	plan, _ := s.plans.GetPlan(date)
 
-	data := view.TodayData{Date: date, HasPlan: plan != nil}
+	data := view.TodayData{
+		Date:     date,
+		HasPlan:  plan != nil,
+		Greeting: greeting(),
+	}
+
 	if plan != nil {
 		items, _ := s.plans.TodayItems(date)
 		data.Items = items
+		data.IsReviewed = plan.State == "reviewed"
 		data.Total = len(items)
 		for _, item := range items {
 			if item.Disposition == "done" {
 				data.Done++
+			} else if item.Disposition == "carried_over" {
+				data.CarriedOver++
 			}
 		}
+	} else {
+		// No plan yet — load inbox for plan selection
+		tasks, _ := s.tasks.InboxTasks()
+		data.InboxTasks = tasks
 	}
 	render(w, r, view.Today(data))
 }
 
 func (s *Server) handleInbox(w http.ResponseWriter, r *http.Request) {
 	tasks, _ := s.tasks.InboxTasks()
-	render(w, r, view.Inbox(view.InboxData{Tasks: tasks}))
+	plan, _ := s.plans.GetPlan(today())
+	render(w, r, view.Inbox(view.InboxData{Tasks: tasks, HasPlan: plan != nil}))
 }
 
 func (s *Server) handlePlan(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +159,8 @@ func (s *Server) handleAPIAdd(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	render(w, r, view.InboxItem(task))
+	plan, _ := s.plans.GetPlan(today())
+	render(w, r, view.InboxCard(task, plan != nil))
 }
 
 // handleAPIDone + OOB progress bar update
@@ -182,7 +217,7 @@ func (s *Server) renderItemWithProgress(w http.ResponseWriter, r *http.Request, 
 
 	for _, item := range items {
 		if item.TaskID == id {
-			render(w, r, view.TodoItemWithProgress(item, done, total))
+			render(w, r, view.TodoCardWithProgress(item, done, total))
 			return
 		}
 	}
@@ -192,7 +227,7 @@ func (s *Server) handleAPIPlan(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	ids := r.Form["task_ids"]
 	if len(ids) == 0 {
-		http.Redirect(w, r, "/plan", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	var taskIDs []int64
@@ -207,7 +242,7 @@ func (s *Server) handleAPIPlan(w http.ResponseWriter, r *http.Request) {
 	date := today()
 	if err := s.plans.CreatePlan(date, taskIDs); err != nil {
 		slog.Error("create plan", "err", err)
-		http.Redirect(w, r, "/plan", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -218,7 +253,7 @@ func (s *Server) handleAPIReview(w http.ResponseWriter, r *http.Request) {
 	if _, _, err := s.plans.Review(date); err != nil {
 		slog.Error("review", "err", err)
 	}
-	http.Redirect(w, r, "/review", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (s *Server) handleAPIReorder(w http.ResponseWriter, r *http.Request) {
@@ -269,14 +304,14 @@ func (s *Server) handleAPIUpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	dueDate := strings.TrimSpace(r.FormValue("due_date"))
 	notes := r.FormValue("notes")
+	requestedBy := strings.TrimSpace(r.FormValue("requested_by"))
 
-	_, err = s.tasks.Update(id, title, dueDate, notes)
+	_, err = s.tasks.Update(id, title, dueDate, notes, requestedBy)
 	if err != nil {
 		slog.Error("update task", "err", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// Return to the referring page, default to /
 	back := r.FormValue("back")
 	if back == "" {
 		back = "/"
@@ -321,7 +356,6 @@ func (s *Server) handleAPIAddToday(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return the new item + updated progress OOB
 	items, _ := s.plans.TodayItems(date)
 	done, total := 0, len(items)
 	for _, item := range items {
@@ -331,10 +365,81 @@ func (s *Server) handleAPIAddToday(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, item := range items {
 		if item.TaskID == task.ID {
-			render(w, r, view.TodoItemWithProgress(item, done, total))
+			render(w, r, view.TodoCardWithProgress(item, done, total))
 			return
 		}
 	}
+}
+
+func (s *Server) handleAPIInboxEdit(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	task, err := s.tasks.Get(id)
+	if err != nil {
+		http.Error(w, "task not found", http.StatusNotFound)
+		return
+	}
+	plan, _ := s.plans.GetPlan(today())
+	render(w, r, view.InboxCardEdit(task, plan != nil))
+}
+
+func (s *Server) handleAPIInboxEditSave(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	title := strings.TrimSpace(r.FormValue("title"))
+	if title == "" {
+		http.Error(w, "title required", http.StatusBadRequest)
+		return
+	}
+	task, err := s.tasks.Get(id)
+	if err != nil {
+		http.Error(w, "task not found", http.StatusNotFound)
+		return
+	}
+	task, err = s.tasks.Update(id, title, task.DueDate, task.Notes, task.RequestedBy)
+	if err != nil {
+		slog.Error("update task title", "err", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	plan, _ := s.plans.GetPlan(today())
+	render(w, r, view.InboxCard(task, plan != nil))
+}
+
+func (s *Server) handleAPIInboxItem(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	task, err := s.tasks.Get(id)
+	if err != nil {
+		http.Error(w, "task not found", http.StatusNotFound)
+		return
+	}
+	plan, _ := s.plans.GetPlan(today())
+	render(w, r, view.InboxCard(task, plan != nil))
+}
+
+func (s *Server) handleAPIMoveToday(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	date := today()
+	if err := s.plans.AddToTodayPlan(date, id); err != nil {
+		slog.Error("move to today", "err", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
@@ -348,7 +453,6 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// If called from detail page (non-HTMX), redirect back
 	if r.Header.Get("HX-Request") != "true" {
 		back := r.URL.Query().Get("back")
 		if back == "" {
@@ -357,8 +461,103 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, back, http.StatusSeeOther)
 		return
 	}
-	// HTMX: return empty to remove element
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) handleAPIRemoveToday(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	date := today()
+	if err := s.plans.RemoveFromTodayPlan(date, id); err != nil {
+		slog.Error("remove from today", "err", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	items, _ := s.plans.TodayItems(date)
+	done, total := 0, len(items)
+	for _, item := range items {
+		if item.Disposition == "done" {
+			done++
+		}
+	}
+	render(w, r, view.ProgressUpdatesOnly(done, total))
+}
+
+func (s *Server) handleAPITodayEdit(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	task, err := s.tasks.Get(id)
+	if err != nil {
+		http.Error(w, "task not found", http.StatusNotFound)
+		return
+	}
+	date := today()
+	items, _ := s.plans.TodayItems(date)
+	for _, item := range items {
+		if item.TaskID == id {
+			render(w, r, view.TodoCardEdit(item))
+			return
+		}
+	}
+	render(w, r, view.TodoCardEdit(model.PlanItem{
+		TaskID:      task.ID,
+		Disposition: "planned",
+		Task:        *task,
+	}))
+}
+
+func (s *Server) handleAPITodayEditSave(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	title := strings.TrimSpace(r.FormValue("title"))
+	if title == "" {
+		http.Error(w, "title required", http.StatusBadRequest)
+		return
+	}
+	task, err := s.tasks.Get(id)
+	if err != nil {
+		http.Error(w, "task not found", http.StatusNotFound)
+		return
+	}
+	if _, err = s.tasks.Update(id, title, task.DueDate, task.Notes, task.RequestedBy); err != nil {
+		slog.Error("update task title", "err", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	date := today()
+	items, _ := s.plans.TodayItems(date)
+	for _, item := range items {
+		if item.TaskID == id {
+			render(w, r, view.TodoCard(item))
+			return
+		}
+	}
+}
+
+func (s *Server) handleAPITodayItem(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	date := today()
+	items, _ := s.plans.TodayItems(date)
+	for _, item := range items {
+		if item.TaskID == id {
+			render(w, r, view.TodoCard(item))
+			return
+		}
+	}
+	http.Error(w, "item not found", http.StatusNotFound)
 }
 
 func render(w http.ResponseWriter, r *http.Request, c templ.Component) {

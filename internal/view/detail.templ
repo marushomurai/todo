@@ -12,19 +12,21 @@ type DetailData struct {
 
 templ Detail(data DetailData) {
 	@Layout(fmt.Sprintf("mañana — #%d", data.Task.ID)) {
-		<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/task/%d", data.Task.ID)) } class="space-y-5">
+		<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/task/%d", data.Task.ID)) } class="space-y-6">
 			<input type="hidden" name="back" value={ data.Back }/>
 			<!-- Header -->
 			<div class="flex items-center gap-3">
-				<a href={ templ.SafeURL(data.Back) } class="text-stone-400 hover:text-stone-900 transition-colors">
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<a href={ templ.SafeURL(data.Back) } class="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-200 transition-all">
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
 					</svg>
 				</a>
 				<span class="text-stone-300 text-xs font-mono">{ fmt.Sprintf("#%d", data.Task.ID) }</span>
-				<span class={ "text-xs px-2 py-0.5 rounded-full",
-					templ.KV("bg-green-100 text-green-700", data.Task.Status == "active"),
-					templ.KV("bg-stone-200 text-stone-500", data.Task.Status == "done") }>
+				<span
+					class={ "text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide uppercase",
+					templ.KV("bg-emerald-100 text-emerald-700", data.Task.Status == "active"),
+					templ.KV("bg-stone-200 text-stone-500", data.Task.Status == "done") }
+				>
 					if data.Task.Status == "active" {
 						active
 					} else {
@@ -38,44 +40,59 @@ templ Detail(data DetailData) {
 					type="text"
 					name="title"
 					value={ data.Task.Title }
-					class="w-full text-xl font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0"
+					class="w-full text-xl font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-300"
+					placeholder="タスク名..."
 				/>
 			</div>
-			<!-- Due date -->
-			<div class="flex items-center gap-3">
-				<label class="text-stone-400 text-sm w-16">期限</label>
-				<input
-					type="date"
-					name="due_date"
-					value={ data.Task.DueDate }
-					class="px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-sm focus:outline-none focus:border-stone-400 transition-colors"
-				/>
-			</div>
-			<!-- Created -->
-			<div class="flex items-center gap-3">
-				<label class="text-stone-400 text-sm w-16">作成</label>
-				<span class="text-sm text-stone-500">{ data.Task.CreatedAt.Format("2006-01-02 15:04") }</span>
-			</div>
-			if data.Task.DoneAt != nil {
+			<!-- Fields -->
+			<div class="space-y-4 bg-white rounded-xl p-5 border border-stone-200/80 shadow-sm">
 				<div class="flex items-center gap-3">
-					<label class="text-stone-400 text-sm w-16">完了</label>
-					<span class="text-sm text-stone-500">{ data.Task.DoneAt.Format("2006-01-02 15:04") }</span>
+					<label class="text-stone-400 text-xs w-14 uppercase tracking-wider font-semibold">期限</label>
+					<input
+						type="date"
+						name="due_date"
+						value={ data.Task.DueDate }
+						class="flex-1 px-3 py-2 rounded-lg border border-stone-200 bg-stone-50 text-sm focus:outline-none focus:border-stone-500 focus:bg-white transition-all"
+					/>
 				</div>
-			}
+				<div class="border-t border-stone-100"></div>
+				<div class="flex items-center gap-3">
+					<label class="text-stone-400 text-xs w-14 uppercase tracking-wider font-semibold">依頼者</label>
+					<input
+						type="text"
+						name="requested_by"
+						value={ data.Task.RequestedBy }
+						placeholder="依頼者名..."
+						class="flex-1 px-3 py-2 rounded-lg border border-stone-200 bg-stone-50 text-sm focus:outline-none focus:border-stone-500 focus:bg-white transition-all placeholder:text-stone-300"
+					/>
+				</div>
+				<div class="border-t border-stone-100"></div>
+				<div class="flex items-center gap-3">
+					<label class="text-stone-400 text-xs w-14 uppercase tracking-wider font-semibold">作成</label>
+					<span class="text-sm text-stone-500">{ data.Task.CreatedAt.Format("2006-01-02 15:04") }</span>
+				</div>
+				if data.Task.DoneAt != nil {
+					<div class="border-t border-stone-100"></div>
+					<div class="flex items-center gap-3">
+						<label class="text-stone-400 text-xs w-14 uppercase tracking-wider font-semibold">完了</label>
+						<span class="text-sm text-stone-500">{ data.Task.DoneAt.Format("2006-01-02 15:04") }</span>
+					</div>
+				}
+			</div>
 			<!-- Notes -->
 			<div>
-				<label class="text-stone-400 text-sm block mb-1">メモ</label>
+				<label class="text-stone-400 text-xs block mb-2 uppercase tracking-wider font-semibold">メモ</label>
 				<textarea
 					name="notes"
 					rows="6"
 					placeholder="メモを追加..."
-					class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm focus:outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-colors resize-y"
+					class="w-full px-4 py-3 rounded-xl border border-stone-200/80 bg-white text-sm focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500/20 transition-all resize-y shadow-sm placeholder:text-stone-300"
 				>{ data.Task.Notes }</textarea>
 			</div>
 			<!-- Save -->
 			<button
 				type="submit"
-				class="w-full py-2.5 bg-stone-900 text-white rounded-lg text-sm font-semibold hover:bg-stone-700 transition-colors"
+				class="w-full py-3 bg-stone-900 text-white rounded-xl text-sm font-semibold hover:bg-stone-700 transition-all shadow-sm hover:shadow-md active:scale-[0.99]"
 			>
 				保存
 			</button>
@@ -84,7 +101,7 @@ templ Detail(data DetailData) {
 			<button
 				type="submit"
 				onclick="return confirm('削除しますか？')"
-				class="w-full py-2.5 text-red-500 border border-red-200 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors"
+				class="w-full py-3 text-red-500 border border-red-200 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all"
 			>
 				削除
 			</button>

@@ -8,7 +8,7 @@ import (
 	"github.com/yuyanky/todo/internal/model"
 )
 
-const taskCols = "id, title, status, done_at, due_date, notes, inbox_position, created_at"
+const taskCols = "id, title, status, done_at, due_date, notes, requested_by, inbox_position, created_at"
 
 type TaskStore struct {
 	db *sql.DB
@@ -19,8 +19,9 @@ func NewTaskStore(db *sql.DB) *TaskStore {
 }
 
 type AddOpts struct {
-	DueDate string
-	Notes   string
+	DueDate     string
+	Notes       string
+	RequestedBy string
 }
 
 func (s *TaskStore) Add(title string, opts ...AddOpts) (*model.Task, error) {
@@ -33,8 +34,8 @@ func (s *TaskStore) Add(title string, opts ...AddOpts) (*model.Task, error) {
 		dueVal = o.DueDate
 	}
 	res, err := s.db.Exec(
-		"INSERT INTO tasks (title, due_date, notes) VALUES (?, ?, ?)",
-		title, dueVal, o.Notes,
+		"INSERT INTO tasks (title, due_date, notes, requested_by) VALUES (?, ?, ?, ?)",
+		title, dueVal, o.Notes, o.RequestedBy,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert task: %w", err)
@@ -89,7 +90,7 @@ func (s *TaskStore) Delete(id int64) error {
 	return nil
 }
 
-func (s *TaskStore) Update(id int64, title, dueDate, notes string) (*model.Task, error) {
+func (s *TaskStore) Update(id int64, title, dueDate, notes, requestedBy string) (*model.Task, error) {
 	var dueDateVal any
 	if dueDate == "" {
 		dueDateVal = nil
@@ -97,8 +98,8 @@ func (s *TaskStore) Update(id int64, title, dueDate, notes string) (*model.Task,
 		dueDateVal = dueDate
 	}
 	_, err := s.db.Exec(
-		"UPDATE tasks SET title = ?, due_date = ?, notes = ? WHERE id = ?",
-		title, dueDateVal, notes, id,
+		"UPDATE tasks SET title = ?, due_date = ?, notes = ?, requested_by = ? WHERE id = ?",
+		title, dueDateVal, notes, requestedBy, id,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("update task: %w", err)
@@ -131,7 +132,7 @@ func (s *TaskStore) ListActive() ([]*model.Task, error) {
 // InboxTasks returns active tasks NOT in any open/closed daily plan
 func (s *TaskStore) InboxTasks() ([]*model.Task, error) {
 	query := `
-		SELECT t.id, t.title, t.status, t.done_at, t.due_date, t.notes, t.inbox_position, t.created_at
+		SELECT t.id, t.title, t.status, t.done_at, t.due_date, t.notes, t.requested_by, t.inbox_position, t.created_at
 		FROM tasks t
 		WHERE t.status = ?
 		  AND t.id NOT IN (
@@ -175,7 +176,7 @@ func scanTask(row *sql.Row) (*model.Task, error) {
 	var t model.Task
 	var doneAt sql.NullTime
 	var dueDate sql.NullString
-	if err := row.Scan(&t.ID, &t.Title, &t.Status, &doneAt, &dueDate, &t.Notes, &t.InboxPosition, &t.CreatedAt); err != nil {
+	if err := row.Scan(&t.ID, &t.Title, &t.Status, &doneAt, &dueDate, &t.Notes, &t.RequestedBy, &t.InboxPosition, &t.CreatedAt); err != nil {
 		return nil, err
 	}
 	if doneAt.Valid {
@@ -191,7 +192,7 @@ func scanTaskRows(rows *sql.Rows) (*model.Task, error) {
 	var t model.Task
 	var doneAt sql.NullTime
 	var dueDate sql.NullString
-	if err := rows.Scan(&t.ID, &t.Title, &t.Status, &doneAt, &dueDate, &t.Notes, &t.InboxPosition, &t.CreatedAt); err != nil {
+	if err := rows.Scan(&t.ID, &t.Title, &t.Status, &doneAt, &dueDate, &t.Notes, &t.RequestedBy, &t.InboxPosition, &t.CreatedAt); err != nil {
 		return nil, err
 	}
 	if doneAt.Valid {

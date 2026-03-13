@@ -29,6 +29,30 @@ make build   # ローカルビルド
 make install # go install
 ```
 
+## Web UI
+
+- Go + Templ + HTMX + Tailwind CSS v4 (standalone CLI, Node不要)
+- Sortable.js (static/sortable.min.js, 45KB vendored)
+- 2タブ構成: TODAY | INBOX
+- TODAYページは4ステート: 朝の選択 → 実行中 → 振り返り → 完了
+- `todo serve --port 3456` でHTTPサーバー起動
+
+## デプロイ (OpenClaw = Mac Mini)
+
+GitHub Releases にバイナリをアップロード → OpenClaw に以下を指示:
+
+```
+curl -L -o ~/Developer/Projects/todo/todo \
+  "https://github.com/marushomurai/todo/releases/download/<VERSION>/todo-openclaw" \
+  && chmod +x ~/Developer/Projects/todo/todo \
+  && launchctl kickstart -k gui/$(id -u)/com.yuyanky.todo-bot \
+  && launchctl kickstart -k gui/$(id -u)/com.yuyanky.todo-serve
+```
+
+- `com.yuyanky.todo-serve` — HTTPサーバー (port 3456)
+- `com.yuyanky.todo-bot` — Telegram Bot
+- MacBook Pro の localhost:3456 → Mac Mini へSSHトンネル
+
 ## マニャーナルール
 
 - plan は1日1回 (--replan で再計画、v0.2.0)

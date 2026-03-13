@@ -44,4 +44,5 @@ var migrations = []string{
 	"ALTER TABLE tasks ADD COLUMN due_date TEXT",
 	"ALTER TABLE tasks ADD COLUMN inbox_position INTEGER NOT NULL DEFAULT 0",
 	"ALTER TABLE tasks ADD COLUMN notes TEXT NOT NULL DEFAULT ''",
+	"ALTER TABLE tasks ADD COLUMN requested_by TEXT NOT NULL DEFAULT ''",
 }

@@ -33,6 +33,7 @@ type Task struct {
 	DoneAt        *time.Time `json:"done_at,omitempty"`
 	DueDate       string     `json:"due_date,omitempty"`
 	Notes         string     `json:"notes,omitempty"`
+	RequestedBy   string     `json:"requested_by,omitempty"`
 	InboxPosition int        `json:"inbox_position"`
 	CreatedAt     time.Time  `json:"created_at"`
 }

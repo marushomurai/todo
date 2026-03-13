@@ -73,7 +73,7 @@ func (s *PlanStore) CreatePlan(date string, taskIDs []int64) error {
 func (s *PlanStore) TodayItems(date string) ([]model.PlanItem, error) {
 	query := `
 		SELECT dpi.plan_date, dpi.task_id, dpi.position, dpi.disposition,
-		       t.id, t.title, t.status, t.done_at, t.due_date, t.notes, t.inbox_position, t.created_at
+		       t.id, t.title, t.status, t.done_at, t.due_date, t.notes, t.requested_by, t.inbox_position, t.created_at
 		FROM daily_plan_items dpi
 		JOIN tasks t ON t.id = dpi.task_id
 		WHERE dpi.plan_date = ?
@@ -91,7 +91,7 @@ func (s *PlanStore) TodayItems(date string) ([]model.PlanItem, error) {
 		var dueDate sql.NullString
 		if err := rows.Scan(
 			&pi.PlanDate, &pi.TaskID, &pi.Position, &pi.Disposition,
-			&pi.Task.ID, &pi.Task.Title, &pi.Task.Status, &doneAt, &dueDate, &pi.Task.Notes, &pi.Task.InboxPosition, &pi.Task.CreatedAt,
+			&pi.Task.ID, &pi.Task.Title, &pi.Task.Status, &doneAt, &dueDate, &pi.Task.Notes, &pi.Task.RequestedBy, &pi.Task.InboxPosition, &pi.Task.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -205,6 +205,12 @@ func (s *PlanStore) Reorder(date string, taskIDs []int64) error {
 		}
 	}
 	return tx.Commit()
+}
+
+// RemoveFromTodayPlan removes a task from today's plan (back to inbox).
+func (s *PlanStore) RemoveFromTodayPlan(date string, taskID int64) error {
+	_, err := s.db.Exec("DELETE FROM daily_plan_items WHERE plan_date = ? AND task_id = ?", date, taskID)
+	return err
 }
 
 // AutoFixYesterday carries over any unreviewed past plans' items.
