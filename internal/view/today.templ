@@ -2,6 +2,8 @@ package view
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/yuyanky/todo/internal/model"
 )
 
@@ -15,311 +17,225 @@ type TodayData struct {
 	CarriedOver int
 	InboxTasks  []*model.Task
 	Greeting    string
+	HasRecovery bool
 }
 
 templ Today(data TodayData) {
-	@Layout("mañana — today") {
+	@Layout("TODAY", "/") {
+		if data.HasRecovery {
+			@RecoveryBanner()
+		}
 		if !data.HasPlan {
-			// ── State A: 朝の儀式 ──
-			if len(data.InboxTasks) == 0 {
-				<div class="text-center py-20">
-					<p class="text-stone-400 text-sm mb-2">inbox は空です</p>
-					<p class="text-stone-300 text-xs mb-8">気になることが出たらここに置きます</p>
-					<a href="/inbox" class="inline-block bg-stone-800 text-white px-6 py-2.5 rounded-lg text-sm hover:bg-stone-700 transition-colors">
-						タスクを追加する
-					</a>
-				</div>
-			} else {
-				<form method="POST" action="/api/plan" id="plan-form">
-					<p class="text-stone-400 text-xs mb-4">{ data.Greeting } — 今日やるものを選んでください</p>
-					<div class="list-container mb-5" id="plan-list">
-						for _, task := range data.InboxTasks {
-							@PlanRow(task)
-						}
-					</div>
-					<div id="plan-count" class="text-center text-stone-400 text-[11px] mb-4 tracking-wide">
-						チェックして選んでください
-					</div>
-					<button
-						type="submit"
-						class="submit-btn w-full"
-					>
-						今日のリストを閉じる
-					</button>
-				</form>
-				<script>
-					document.getElementById('plan-list').addEventListener('change', function() {
-						var checked = document.querySelectorAll('#plan-list input[type="checkbox"]:checked').length;
-						var el = document.getElementById('plan-count');
-						if (checked === 0) {
-							el.textContent = 'チェックして選んでください';
-							el.className = 'text-center text-stone-400 text-[11px] mb-4 tracking-wide';
-						} else if (checked > 5) {
-							el.textContent = checked + '件選択 — 少し多いかも';
-							el.className = 'text-center text-amber-600 text-[11px] mb-4 tracking-wide';
-						} else {
-							el.textContent = checked + '件選択';
-							el.className = 'text-center text-stone-600 text-[11px] mb-4 tracking-wide font-medium';
-						}
-					});
-				</script>
-			}
-		} else if !data.IsReviewed {
-			// ── State B/C: 実行中 ──
-			<div id="progress-header" class="mb-2 flex items-baseline justify-between">
-				<span class="text-stone-300 text-[11px] font-mono">{ data.Date }</span>
-				<span class="text-[11px] text-stone-400 tabular-nums tracking-wide" style="font-family: 'Outfit', sans-serif;">
-					{ fmt.Sprintf("%d / %d", data.Done, data.Total) }
-				</span>
-			</div>
-			@ProgressBar(data.Done, data.Total)
-			<div class="list-container" id="will-do-list">
-				for _, item := range data.Items {
-					@TodoRow(item)
-				}
-			</div>
-			<!-- 例外追加 -->
-			<details class="mt-4">
-				<summary class="text-stone-300 text-[11px] cursor-pointer hover:text-stone-500 transition-colors select-none tracking-wide">
-					+ 例外として追加
-				</summary>
-				<form
-					hx-post="/api/add-today"
-					hx-target="#will-do-list"
-					hx-swap="beforeend"
-					hx-on::after-request="this.reset(); this.closest('details').open = false;"
-					class="mt-2 flex gap-2"
-				>
-					<input
-						type="text"
-						name="title"
-						placeholder="追加タスク..."
-						required
-						class="form-input flex-1 border-dashed"
-					/>
-					<button
-						type="submit"
-						hx-disabled-elt="this"
-						class="px-3 py-2 text-stone-400 hover:text-stone-800 text-xs transition-colors"
-					>
-						追加
-					</button>
-				</form>
-			</details>
-			<!-- 振り返り -->
-			<div class="mt-10 pt-6 border-t border-stone-100">
-				<form method="POST" action="/api/review">
-					<button type="submit" class="submit-btn w-full">
-						1日を閉じる
-					</button>
-				</form>
-			</div>
-			<script src="/static/sortable.min.js"></script>
-			<script>
-				new Sortable(document.getElementById('will-do-list'), {
-					animation: 150,
-					ghostClass: 'opacity-30',
-					handle: '.drag-handle',
-					onEnd: function() {
-						var ids = [];
-						document.querySelectorAll('#will-do-list > div[data-task-id]').forEach(function(el) {
-							ids.push(parseInt(el.dataset.taskId));
-						});
-						fetch('/api/reorder', {
-							method: 'POST',
-							headers: {'Content-Type': 'application/json'},
-							body: JSON.stringify({task_ids: ids})
-						});
-					}
-				});
-			</script>
+			@todayNoPlan(data)
+		} else if data.IsReviewed {
+			@todayReviewed(data)
 		} else {
-			// ── State D: 締め完了 ──
-			<div class="text-center py-10">
-				<div class="text-5xl font-black mb-2 tracking-tighter" style="font-family: 'Outfit', sans-serif;">
-					if data.Total > 0 {
-						{ fmt.Sprintf("%.0f%%", float64(data.Done)*100/float64(data.Total)) }
-					}
-				</div>
-				<p class="text-stone-400 text-xs mb-1">
-					{ fmt.Sprintf("%d / %d 完了", data.Done, data.Total) }
-				</p>
-				if data.CarriedOver > 0 {
-					<p class="text-amber-600 text-[11px] mb-6">
-						{ fmt.Sprintf("%d件は inbox に戻しました", data.CarriedOver) }
-					</p>
-				} else {
-					<p class="text-emerald-700 text-[11px] mb-6">すべて完了</p>
-				}
-				<div class="list-container text-left mb-6">
-					for i, item := range data.Items {
-						<div
-							class={ "stagger-item flex items-center gap-3 px-4 py-2.5 text-sm border-b border-stone-100 last:border-b-0",
-							templ.KV("text-stone-400", item.Disposition == "done"),
-							templ.KV("text-stone-600", item.Disposition != "done") }
-							style={ fmt.Sprintf("animation-delay: %dms", i*60) }
-						>
-							if item.Disposition == "done" {
-								<span class="text-stone-300 text-xs">✓</span>
-								<span class="line-through">{ item.Task.Title }</span>
-							} else {
-								<span class="text-amber-500 text-xs">→</span>
-								<span>{ item.Task.Title }</span>
-							}
-						</div>
-					}
-				</div>
-				<p class="text-stone-300 text-[11px] tracking-wide">おつかれさまでした</p>
-			</div>
+			@todayActive(data)
 		}
 	}
 }
 
-templ PlanRow(task *model.Task) {
-	<label class="plan-row list-row cursor-pointer">
-		<input
-			type="checkbox"
-			name="task_ids"
-			value={ fmt.Sprintf("%d", task.ID) }
-			class="w-4 h-4 mt-px rounded border-stone-300 text-stone-800 focus:ring-stone-500 cursor-pointer flex-shrink-0"
-		/>
-		<div class="flex-1 min-w-0">
-			<span class="text-sm leading-snug block">{ task.Title }</span>
-			if task.DueDate != "" || task.RequestedBy != "" || task.Notes != "" {
-				<div class="meta-row">
-					if task.DueDate != "" {
-						<span class="meta-badge">{ task.DueDate }</span>
-					}
-					if task.RequestedBy != "" {
-						<span>{ task.RequestedBy }</span>
-					}
-					if task.Notes != "" {
-						<span class="text-stone-300">memo</span>
-					}
-				</div>
+templ RecoveryBanner() {
+	<div id="recovery-banner" class="alert alert-info text-sm mb-6">
+		<span>昨日のレビューが未完了でした。未完了タスクをINBOXに戻しました。</span>
+		<button class="btn btn-ghost btn-xs" onclick="this.closest('#recovery-banner').remove()">✕</button>
+	</div>
+}
+
+templ todayNoPlan(data TodayData) {
+	<div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+		<h1 class="text-2xl font-semibold font-display">{ data.Greeting }</h1>
+		<p class="text-sm text-base-content/60 mt-1">{ formatDateJa(data.Date) }</p>
+		<div class="mt-8">
+			if len(data.InboxTasks) > 0 {
+				<p class="text-sm text-base-content/60 mb-4">INBOXから今日やることを選びます</p>
+				<a href="/plan" hx-boost="true" class="btn btn-primary btn-sm">プランを作る →</a>
+			} else {
+				<p class="text-sm text-base-content/60 mb-4">まずINBOXにタスクを追加しましょう</p>
+				<a href="/inbox" hx-boost="true" class="btn btn-ghost btn-sm">INBOXを開く →</a>
 			}
 		</div>
-	</label>
+	</div>
 }
 
-templ ProgressBar(done int, total int) {
-	<div id="progress-bar" class="w-full bg-stone-100 rounded-full h-1 mb-5 overflow-hidden">
-		if total > 0 {
-			<div
-				class="progress-fill h-1 rounded-full transition-all duration-500 ease-out"
-				style={ fmt.Sprintf("width: %d%%", done*100/total) }
-			></div>
+templ todayActive(data TodayData) {
+	<div class="flex items-baseline justify-between">
+		<h1 class="text-2xl font-semibold font-display">{ formatDateJa(data.Date) }</h1>
+	</div>
+	@ProgressBar(data.Done, data.Total)
+	<div id="today-list" class="mt-6">
+		for _, item := range data.Items {
+			@TaskRow(item)
 		}
 	</div>
-}
-
-templ ProgressHeader(done int, total int) {
-	<div id="progress-header" hx-swap-oob="true" class="mb-2 flex items-baseline justify-between">
-		<span class="text-stone-300 text-[11px] font-mono"></span>
-		<span class="text-[11px] text-stone-400 tabular-nums tracking-wide" style="font-family: 'Outfit', sans-serif;">
-			{ fmt.Sprintf("%d / %d", done, total) }
-		</span>
-	</div>
-}
-
-templ ProgressBarOOB(done int, total int) {
-	<div id="progress-bar" hx-swap-oob="true" class="w-full bg-stone-100 rounded-full h-1 mb-5 overflow-hidden">
-		if total > 0 {
-			<div
-				class="progress-fill h-1 rounded-full transition-all duration-500 ease-out"
-				style={ fmt.Sprintf("width: %d%%", done*100/total) }
-			></div>
-		}
-	</div>
-}
-
-templ ProgressUpdatesOnly(done int, total int) {
-	@ProgressBarOOB(done, total)
-	@ProgressHeader(done, total)
-}
-
-templ TodoRow(item model.PlanItem) {
-	<div
-		id={ fmt.Sprintf("item-%d", item.Task.ID) }
-		data-task-id={ fmt.Sprintf("%d", item.Task.ID) }
-		class={ "todo-row group list-row",
-			templ.KV("hover:bg-stone-50/80", item.Disposition != "done"),
-			templ.KV("bg-stone-50/50", item.Disposition == "done") }
-	>
-		if item.Disposition == "done" {
-			<button
-				hx-post={ fmt.Sprintf("/api/undone/%d", item.Task.ID) }
-				hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
-				hx-swap="outerHTML"
-				class="check-done"
-			>
-				<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-				</svg>
-			</button>
-			<span class="text-sm text-stone-400 line-through leading-snug flex-1">{ item.Task.Title }</span>
-		} else {
-			<span class="drag-handle cursor-grab active:cursor-grabbing text-stone-200 group-hover:text-stone-400 flex-shrink-0 select-none text-[10px] transition-colors">⠿</span>
-			<button
-				hx-post={ fmt.Sprintf("/api/done/%d", item.Task.ID) }
-				hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
-				hx-swap="outerHTML"
-				class="check-circle"
-			></button>
-			<div class="flex-1 min-w-0">
-				<span
-					class="text-sm leading-snug block cursor-text hover:text-stone-500 transition-colors"
-					hx-get={ fmt.Sprintf("/api/today-edit/%d", item.Task.ID) }
-					hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
-					hx-swap="outerHTML"
-				>{ item.Task.Title }</span>
-				if item.Task.DueDate != "" || item.Task.RequestedBy != "" || item.Task.Notes != "" {
-					<div class="meta-row">
-						if item.Task.DueDate != "" {
-							<span class="meta-badge">{ item.Task.DueDate }</span>
-						}
-						if item.Task.RequestedBy != "" {
-							<span>{ item.Task.RequestedBy }</span>
-						}
-						if item.Task.Notes != "" {
-							<span class="text-stone-300">memo</span>
-						}
-					</div>
-				}
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			var el = document.getElementById('today-list');
+			if (el && typeof Sortable !== 'undefined') {
+				new Sortable(el, {
+					animation: 150,
+					ghostClass: 'sortable-ghost',
+					onEnd: function() {
+						var ids = Array.from(el.querySelectorAll('[data-id]')).map(function(r) { return parseInt(r.dataset.id); });
+						fetch('/api/reorder', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ task_ids: ids })
+						});
+					}
+				});
+			}
+		});
+	</script>
+	<div class="mt-8 flex justify-end">
+		if data.Done == data.Total && data.Total > 0 {
+			<div class="flex items-center gap-4">
+				<span class="text-sm text-base-content/60">すべて完了しました</span>
+				<a href="/review" hx-boost="true" class="btn btn-primary btn-sm">レビューして締める →</a>
 			</div>
+		} else {
+			<a href="/review" hx-boost="true" class="btn btn-ghost btn-sm">レビューする →</a>
 		}
 	</div>
 }
 
-templ TodoRowEdit(item model.PlanItem) {
-	<div
-		id={ fmt.Sprintf("item-%d", item.Task.ID) }
-		data-task-id={ fmt.Sprintf("%d", item.Task.ID) }
-		class="list-row bg-stone-50/80"
-	>
-		<form
-			hx-post={ fmt.Sprintf("/api/today-edit/%d", item.Task.ID) }
-			hx-target={ fmt.Sprintf("#item-%d", item.Task.ID) }
-			hx-swap="outerHTML"
-			hx-trigger="submit"
-			class="flex-1"
-		>
-			<input
-				type="text"
-				name="title"
-				value={ item.Task.Title }
-				autofocus
-				class="inline-edit"
-				onkeydown="if(event.key==='Escape'){htmx.ajax('GET',this.closest('form').querySelector('[data-cancel]')?.dataset.cancel||'',{target:this.closest('[data-task-id]'),swap:'outerHTML'});}"
-				onblur="this.closest('form').requestSubmit();"
-				data-cancel={ fmt.Sprintf("/api/today-item/%d", item.Task.ID) }
-			/>
-		</form>
+templ todayReviewed(data TodayData) {
+	<div class="flex items-baseline justify-between">
+		<h1 class="text-2xl font-semibold font-display">{ formatDateJa(data.Date) }</h1>
+		<span class="text-sm text-base-content/60">おつかれさま</span>
+	</div>
+	@ProgressBar(data.Done, data.Total)
+	<p class="text-sm text-base-content/60 mt-4">
+		{ fmt.Sprintf("%d件中 %d件完了", data.Total, data.Done) }
+		if data.CarriedOver > 0 {
+			{ fmt.Sprintf(" · %d件繰越", data.CarriedOver) }
+		}
+	</p>
+	<div id="today-list" class="mt-6">
+		for _, item := range data.Items {
+			@reviewedRow(item)
+		}
+	</div>
+}
+
+templ reviewedRow(item model.PlanItem) {
+	<div class="flex items-center gap-3 min-h-[44px] py-2 border-b border-base-300/30">
+		if item.Disposition == model.DispositionDone {
+			<input type="checkbox" checked disabled class="checkbox checkbox-sm checkbox-success rounded"/>
+			<span class="flex-1 text-sm truncate line-through text-base-content/40">{ item.Task.Title }</span>
+		} else {
+			<span class="w-6 text-center text-base-content/40">↩</span>
+			<span class="flex-1 text-sm truncate text-base-content/40">{ item.Task.Title }</span>
+		}
+	</div>
+}
+
+templ TaskRow(item model.PlanItem) {
+	<div id={ fmt.Sprintf("task-%d", item.TaskID) }
+		class="flex items-center gap-3 min-h-[44px] py-2 border-b border-base-300/30 hover:bg-base-200/50 transition-colors"
+		data-id={ fmt.Sprintf("%d", item.TaskID) }>
+		if item.Disposition == model.DispositionDone {
+			<input type="checkbox" checked
+				class="checkbox checkbox-sm checkbox-success rounded"
+				hx-post={ fmt.Sprintf("/api/undone/%d", item.TaskID) }
+				hx-target={ fmt.Sprintf("#task-%d", item.TaskID) }
+				hx-swap="outerHTML"
+				hx-sync="this:queue last"
+				hx-disabled-elt="this"/>
+			<a href={ templ.SafeURL(fmt.Sprintf("/task/%d", item.TaskID)) }
+				hx-boost="true"
+				class="flex-1 text-sm truncate line-through text-base-content/40">
+				{ item.Task.Title }
+			</a>
+			<span class="w-12 text-right text-xs text-base-content/30 hidden sm:block">{ formatDueShort(item.Task.DueDate) }</span>
+			<span class="w-14 text-right text-xs text-base-content/30 truncate hidden sm:block">{ item.Task.RequestedBy }</span>
+		} else {
+			<input type="checkbox"
+				class="checkbox checkbox-sm checkbox-success rounded"
+				hx-post={ fmt.Sprintf("/api/done/%d", item.TaskID) }
+				hx-target={ fmt.Sprintf("#task-%d", item.TaskID) }
+				hx-swap="outerHTML"
+				hx-sync="this:queue last"
+				hx-disabled-elt="this"/>
+			<a href={ templ.SafeURL(fmt.Sprintf("/task/%d", item.TaskID)) }
+				hx-boost="true"
+				class="flex-1 text-sm truncate">
+				{ item.Task.Title }
+			</a>
+			<span class={ "w-12 text-right text-xs hidden sm:block", dueDateClass(item.Task.DueDate) }>{ formatDueShort(item.Task.DueDate) }</span>
+			<span class="w-14 text-right text-xs text-base-content/50 truncate hidden sm:block">{ item.Task.RequestedBy }</span>
+		}
 	</div>
 }
 
 templ TodoRowWithProgress(item model.PlanItem, done int, total int) {
-	@TodoRow(item)
+	@TaskRow(item)
 	@ProgressBarOOB(done, total)
-	@ProgressHeader(done, total)
 }
+
+templ ProgressBar(done int, total int) {
+	<div id="today-progress" class="flex items-center gap-3 mt-2">
+		@progressBarInner(done, total)
+	</div>
+}
+
+templ progressBarInner(done int, total int) {
+	<progress class="progress progress-primary flex-1 h-1.5"
+		value={ fmt.Sprintf("%d", done) }
+		max={ fmt.Sprintf("%d", total) }></progress>
+	<span class="text-xs text-base-content/50 tabular-nums whitespace-nowrap font-display">
+		{ fmt.Sprintf("%d/%d", done, total) }
+	</span>
+}
+
+templ ProgressBarOOB(done int, total int) {
+	<div id="today-progress" hx-swap-oob="true" class="flex items-center gap-3 mt-2">
+		@progressBarInner(done, total)
+	</div>
+}
+
+func formatDateJa(date string) string {
+	t, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return date
+	}
+	weekdays := []string{"日", "月", "火", "水", "木", "金", "土"}
+	return fmt.Sprintf("%d年%d月%d日（%s）", t.Year(), int(t.Month()), t.Day(), weekdays[t.Weekday()])
+}
+
+func formatDueShort(dueDate string) string {
+	if dueDate == "" {
+		return ""
+	}
+	t, err := time.Parse("2006-01-02", dueDate)
+	if err != nil {
+		return dueDate
+	}
+	return fmt.Sprintf("%d/%d", int(t.Month()), t.Day())
+}
+
+func todayMidnight() time.Time {
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+}
+
+func dueDateClass(dueDate string) string {
+	if dueDate == "" {
+		return "text-base-content/50"
+	}
+	t, err := time.Parse("2006-01-02", dueDate)
+	if err != nil {
+		return "text-base-content/50"
+	}
+	diff := t.Sub(todayMidnight()).Hours() / 24
+	switch {
+	case diff < 0:
+		return "text-error font-medium"
+	case diff <= 1:
+		return "text-warning font-medium"
+	default:
+		return "text-base-content/50"
+	}
+}
+
+

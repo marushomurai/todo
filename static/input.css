@@ -1,245 +1,75 @@
 @import "tailwindcss";
 @source "../internal/view/";
 
-@theme {
-  --font-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+@plugin "daisyui" {
+  themes: manana --default;
 }
 
-/* ══════════════════════════════════════
-   mañana Design System
-   ══════════════════════════════════════ */
-
-/* ── Nav ── */
-.nav-pill {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--color-stone-300);
-  border-radius: 0.5rem;
-  transition: color 0.15s ease;
-  text-transform: uppercase;
-  font-family: 'Outfit', sans-serif;
-}
-.nav-pill:hover {
-  color: var(--color-stone-600);
-}
-.nav-pill[aria-current="page"] {
-  color: var(--color-stone-800);
-  font-weight: 700;
+@plugin "daisyui/theme" {
+  name: "manana";
+  default: true;
+  --color-base-100: oklch(98.5% 0.002 260);
+  --color-base-200: oklch(96% 0.004 260);
+  --color-base-300: oklch(91% 0.008 260);
+  --color-base-content: oklch(25% 0.02 260);
+  --color-primary: oklch(62% 0.19 25);
+  --color-primary-content: oklch(98% 0.01 25);
+  --color-success: oklch(65% 0.17 145);
+  --color-warning: oklch(75% 0.15 75);
+  --color-error: oklch(60% 0.2 25);
+  --color-info: oklch(65% 0.15 250);
+  --color-info-content: oklch(98% 0.01 250);
+  --rounded-btn: 0.375rem;
+  --rounded-box: 0.5rem;
 }
 
-/* ── List container ── */
-.list-container {
-  border: 1px solid var(--color-stone-200);
-  border-radius: 0.5rem;
-  background: white;
-  overflow: hidden;
+/* Fonts */
+@theme inline {
+  --font-display: "Outfit", sans-serif;
+  --font-body: "Zen Kaku Gothic New", -apple-system, "Hiragino Kaku Gothic ProN", sans-serif;
 }
 
-/* ── List row (shared base) ── */
-.list-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.625rem;
-  padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid var(--color-stone-100);
-  transition: background-color 0.1s ease;
-}
-.list-row:last-child {
-  border-bottom: none;
-}
-
-/* ── Meta row ── */
-.meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.375rem;
-  margin-top: 0.25rem;
-  font-size: 0.6875rem;
-  line-height: 1.2;
-  color: var(--color-stone-400);
-}
-
-/* ── Meta badge (date, tag) ── */
-.meta-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: var(--color-stone-100);
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  font-size: 0.625rem;
-  color: var(--color-stone-500);
-  letter-spacing: 0.01em;
-}
-
-/* ── Checkbox circle (undone) ── */
-.check-circle {
-  width: 1rem;
-  height: 1rem;
-  margin-top: 0.1875rem;
-  border-radius: 9999px;
-  border: 1.5px solid var(--color-stone-300);
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.check-circle:hover {
-  border-color: var(--color-stone-600);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-stone-600) 8%, transparent);
-}
-
-/* ── Checkbox done ── */
-.check-done {
-  width: 1rem;
-  height: 1rem;
-  margin-top: 0.1875rem;
-  border-radius: 9999px;
-  background: var(--color-stone-500);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-.check-done:hover {
-  background: var(--color-stone-400);
-}
-
-/* ── Plan row checked ── */
-.plan-row:has(input:checked) {
-  background-color: color-mix(in oklch, var(--color-stone-100) 60%, transparent);
-}
-
-/* ── Form inputs ── */
-.form-input {
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  border: 1px solid var(--color-stone-200);
-  background: white;
-  font-size: 0.875rem;
-  transition: border-color 0.15s ease;
-}
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-stone-400);
-}
-.form-input::placeholder {
-  color: var(--color-stone-300);
-}
-
-/* ── Inline edit (no border, fits in row) ── */
-.inline-edit {
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: transparent;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  outline: none;
-  color: var(--color-stone-800);
-  caret-color: var(--color-stone-500);
-}
-
-/* ── Submit buttons ── */
-.submit-btn {
-  padding: 0.625rem 1.5rem;
-  background: var(--color-stone-800);
-  color: white;
-  border-radius: 0.5rem;
-  font-size: 0.8125rem;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  transition: background-color 0.15s ease;
-}
-.submit-btn:hover {
-  background: var(--color-stone-700);
-}
-
-.submit-btn-sm {
-  padding: 0.5rem 0.875rem;
-  background: var(--color-stone-800);
-  color: white;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  transition: background-color 0.15s ease;
-}
-.submit-btn-sm:hover {
-  background: var(--color-stone-700);
-}
-
-/* ── Action badge (hover actions) ── */
-.action-badge {
-  font-size: 0.625rem;
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  background: var(--color-stone-100);
-  color: var(--color-stone-400);
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  transition: all 0.15s ease;
-}
-.action-badge:hover {
-  background: var(--color-stone-800);
-  color: white;
-}
-
-/* ── Progress bar ── */
-.progress-fill {
-  background: var(--color-stone-600);
-}
-
-/* ── Checkbox accent ── */
-input[type="checkbox"] {
-  accent-color: var(--color-stone-800);
-}
-
-/* ══════════════════════════════════════
-   Animations
-   ══════════════════════════════════════ */
-
+/* HTMX swap animations */
 .htmx-added {
-  animation: fade-in 0.2s ease-out;
+  animation: fade-slide-in 0.25s ease-out;
 }
+
 .htmx-swapping {
   opacity: 0;
-  transition: opacity 0.1s ease-in;
+  transition: opacity 0.15s ease-in;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.stagger-item {
-  opacity: 0;
-  animation: fade-in 0.25s ease-out forwards;
-}
-
-.save-toast {
-  animation: toast-fade 1s ease-out forwards;
-}
-@keyframes toast-fade {
-  0%   { opacity: 0; transform: translateY(4px); }
-  15%  { opacity: 1; transform: translateY(0); }
-  70%  { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* ── Reduced motion ── */
-@media (prefers-reduced-motion: reduce) {
-  .htmx-added, .stagger-item, .save-toast {
-    animation: none;
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
     opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* HTMX indicator — hidden by default, visible during request */
+.htmx-indicator {
+  display: none;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  display: inline-flex;
+}
+
+/* Sortable ghost */
+.sortable-ghost {
+  opacity: 0.3;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .htmx-added {
+    animation: none;
+  }
+  .htmx-swapping {
+    transition: none;
   }
 }

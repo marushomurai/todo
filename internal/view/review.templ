@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+
 	"github.com/yuyanky/todo/internal/model"
 )
 
@@ -16,85 +17,73 @@ type ReviewData struct {
 }
 
 templ Review(data ReviewData) {
-	@Layout("mañana — review") {
+	@Layout("レビュー", "/") {
 		if !data.HasPlan {
-			<div class="text-center py-20">
-				<div class="w-16 h-16 mx-auto mb-6 rounded-full bg-stone-200 flex items-center justify-center">
-					<svg class="w-7 h-7 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-					</svg>
-				</div>
-				<p class="text-stone-400 text-base mb-6">今日はまだ計画がありません</p>
-				<a href="/plan" class="inline-block bg-stone-900 text-white px-8 py-3 rounded-xl font-semibold text-sm hover:bg-stone-700 transition-all hover:shadow-lg active:scale-[0.98]">
-					計画する
-				</a>
+			<div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+				<p class="text-sm text-base-content/60">今日のプランがありません</p>
+				<a href="/" hx-boost="true" class="btn btn-ghost btn-sm mt-4">TODAYへ戻る →</a>
 			</div>
-		} else if !data.IsReviewed {
-			<p class="text-stone-500 text-sm mb-5">今日の振り返りをしましょう</p>
-			<ul class="space-y-2 mb-8">
-				for _, item := range data.Items {
-					<li
-						class={ "flex items-center gap-3 p-3.5 rounded-xl border transition-all",
-						templ.KV("bg-white border-stone-200/80 shadow-sm", item.Disposition != "done"),
-						templ.KV("bg-stone-50 border-stone-100 opacity-50", item.Disposition == "done") }
-					>
-						if item.Disposition == "done" {
-							<div class="w-5 h-5 rounded-full bg-stone-800 flex items-center justify-center flex-shrink-0">
-								<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-								</svg>
-							</div>
-							<span class="line-through text-stone-400 text-sm">{ item.Task.Title }</span>
-						} else {
-							<div class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></div>
-							<span class="text-sm font-medium">{ item.Task.Title }</span>
-							<span class="ml-auto text-[10px] px-2 py-0.5 rounded-lg bg-amber-100 text-amber-600">→ inbox</span>
-						}
-					</li>
-				}
-			</ul>
-			<form method="POST" action="/api/review">
-				<button
-					type="submit"
-					class="w-full py-3 bg-stone-900 text-white rounded-xl font-semibold text-sm hover:bg-stone-700 transition-all shadow-sm hover:shadow-md active:scale-[0.99]"
-				>
-					振り返りを完了する
-				</button>
-			</form>
+		} else if data.IsReviewed {
+			<div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+				<p class="text-sm text-base-content/60">今日のレビューは完了済みです</p>
+				<a href="/" hx-boost="true" class="btn btn-ghost btn-sm mt-4">TODAYへ戻る →</a>
+			</div>
 		} else {
-			<div class="text-center py-10">
-				<div class="text-7xl font-black mb-3 tracking-tighter" style="font-family: 'Outfit', sans-serif;">
-					if data.Total > 0 {
-						{ fmt.Sprintf("%.0f%%", float64(data.Done)*100/float64(data.Total)) }
+			@reviewContent(data)
+		}
+	}
+}
+
+templ reviewContent(data ReviewData) {
+	<h1 class="text-2xl font-semibold font-display">今日の振り返り</h1>
+	<p class="text-sm text-base-content/60 mt-1">{ formatDateJa(data.Date) }</p>
+	@reviewSection(isDone(data.Items), "完了", true)
+	@reviewSection(isNotDone(data.Items), "未完了", false)
+	<p class="text-sm text-base-content/60 mt-6">未完了タスクはINBOXに戻ります</p>
+	<div class="mt-4 flex justify-end">
+		<form method="POST" action="/api/review">
+			<button type="submit" class="btn btn-primary btn-sm">レビューを完了 →</button>
+		</form>
+	</div>
+}
+
+func isDone(items []model.PlanItem) []model.PlanItem {
+	var result []model.PlanItem
+	for _, item := range items {
+		if item.Disposition == model.DispositionDone {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func isNotDone(items []model.PlanItem) []model.PlanItem {
+	var result []model.PlanItem
+	for _, item := range items {
+		if item.Disposition != model.DispositionDone {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+templ reviewSection(items []model.PlanItem, label string, done bool) {
+	if len(items) > 0 {
+		<div class="mt-6">
+			<h2 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider font-display mb-2">
+				{ label } ({ fmt.Sprintf("%d", len(items)) })
+			</h2>
+			for _, item := range items {
+				<div class="flex items-center gap-3 min-h-[44px] py-2 border-b border-base-300/30">
+					if done {
+						<input type="checkbox" checked disabled class="checkbox checkbox-sm checkbox-success rounded"/>
+						<span class="flex-1 text-sm truncate line-through text-base-content/40">{ item.Task.Title }</span>
+					} else {
+						<span class="w-6"></span>
+						<span class="flex-1 text-sm truncate">{ item.Task.Title }</span>
 					}
 				</div>
-				<p class="text-stone-400 text-sm mb-8">
-					{ fmt.Sprintf("%d/%d 完了", data.Done, data.Total) }
-					if data.CarriedOver > 0 {
-						<span class="inline-block ml-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-600 text-[10px]">
-							{ fmt.Sprintf("%d件 inbox戻し", data.CarriedOver) }
-						</span>
-					}
-				</p>
-				<ul class="space-y-2 mb-8 text-left">
-					for _, item := range data.Items {
-						<li
-							class={ "flex items-center gap-3 p-3.5 rounded-xl transition-all",
-							templ.KV("bg-stone-50", item.Disposition == "done"),
-							templ.KV("bg-amber-50", item.Disposition != "done") }
-						>
-							if item.Disposition == "done" {
-								<span class="text-stone-400 text-sm">✓</span>
-								<span class="line-through text-stone-400 text-sm">{ item.Task.Title }</span>
-							} else {
-								<span class="text-amber-500 text-sm">→</span>
-								<span class="text-stone-500 text-sm">{ item.Task.Title }</span>
-							}
-						</li>
-					}
-				</ul>
-				<p class="text-stone-300 text-xs tracking-wide">おつかれさまでした</p>
-			</div>
-		}
+			}
+		</div>
 	}
 }

@@ -2,69 +2,109 @@ package view
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/yuyanky/todo/internal/model"
 )
 
 type PlanData struct {
 	Tasks       []*model.Task
 	AlreadyDone bool
-	Date        string
 }
 
 templ Plan(data PlanData) {
-	@Layout("mañana — plan") {
+	@Layout("プラン作成", "/") {
 		if data.AlreadyDone {
-			<div class="text-center py-20">
-				<div class="w-16 h-16 mx-auto mb-6 rounded-full bg-stone-200 flex items-center justify-center">
-					<svg class="w-7 h-7 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"></path>
-					</svg>
-				</div>
-				<p class="text-stone-400 text-base mb-2">今日はもう計画済みです</p>
-				<p class="text-stone-300 text-xs mb-8 font-mono">{ data.Date }</p>
-				<a href="/" class="inline-block bg-stone-900 text-white px-8 py-3 rounded-xl font-semibold text-sm hover:bg-stone-700 transition-all hover:shadow-lg active:scale-[0.98]">
-					TODAY を見る
-				</a>
+			<div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+				<p class="text-sm text-base-content/60">今日のプランは作成済みです</p>
+				<a href="/" hx-boost="true" class="btn btn-ghost btn-sm mt-4">TODAYへ戻る →</a>
 			</div>
 		} else if len(data.Tasks) == 0 {
-			<div class="text-center py-20">
-				<div class="w-16 h-16 mx-auto mb-6 rounded-full bg-stone-200 flex items-center justify-center">
-					<svg class="w-7 h-7 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-					</svg>
-				</div>
-				<p class="text-stone-400 text-base mb-6">inboxが空です</p>
-				<a href="/inbox" class="inline-block bg-stone-900 text-white px-8 py-3 rounded-xl font-semibold text-sm hover:bg-stone-700 transition-all hover:shadow-lg active:scale-[0.98]">
-					タスクを追加する
-				</a>
+			<div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+				<h1 class="text-2xl font-semibold font-display">今日やることを選ぶ</h1>
+				<p class="text-sm text-base-content/60 mt-4">タスクがありません。INBOXに追加してください。</p>
+				<a href="/inbox" hx-boost="true" class="btn btn-ghost btn-sm mt-4">INBOXを開く →</a>
 			</div>
 		} else {
-			<form method="POST" action="/api/plan">
-				<p class="text-stone-500 text-sm mb-5">今日やるタスクを選んでください</p>
-				<ul class="space-y-2 mb-8">
-					for _, task := range data.Tasks {
-						<li class="plan-item flex items-center gap-3 p-3.5 rounded-xl border border-stone-200/80 bg-white shadow-sm cursor-pointer hover:shadow-md transition-all">
-							<input
-								type="checkbox"
-								name="task_ids"
-								value={ fmt.Sprintf("%d", task.ID) }
-								class="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-500 cursor-pointer"
-							/>
-							<span class="font-medium text-sm flex-1">{ task.Title }</span>
-							if task.DueDate != "" {
-								<span class="text-stone-400 text-[10px]">{ task.DueDate }</span>
-							}
-							<span class="text-stone-300 text-[10px] font-mono">{ fmt.Sprintf("#%d", task.ID) }</span>
-						</li>
-					}
-				</ul>
-				<button
-					type="submit"
-					class="w-full py-3 bg-stone-900 text-white rounded-xl font-semibold text-sm hover:bg-stone-700 transition-all shadow-sm hover:shadow-md active:scale-[0.99]"
-				>
-					リストを閉じる
-				</button>
-			</form>
+			@planSelection(data)
 		}
 	}
+}
+
+templ planSelection(data PlanData) {
+	<h1 class="text-2xl font-semibold font-display">今日やることを選ぶ</h1>
+	<p class="text-sm text-base-content/60 mt-1">選んだらあとで増やせません。慎重に。</p>
+	<form method="POST" action="/api/plan" class="mt-6">
+		for _, group := range groupTasks(data.Tasks) {
+			if len(group.Tasks) > 0 {
+				<div class="mt-4 first:mt-0">
+					<h2 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider font-display mb-2">
+						{ group.Label } ({ fmt.Sprintf("%d", len(group.Tasks)) })
+					</h2>
+					for _, task := range group.Tasks {
+						<label class="flex items-center gap-3 min-h-[44px] py-2 border-b border-base-300/30 hover:bg-base-200/50 transition-colors cursor-pointer">
+							<input type="checkbox" name="task_ids" value={ fmt.Sprintf("%d", task.ID) }
+								class="plan-checkbox checkbox checkbox-sm checkbox-primary rounded"
+								onchange="updatePlanCount()"/>
+							<span class="flex-1 text-sm truncate">{ task.Title }</span>
+							<span class={ "w-12 text-right text-xs hidden sm:block", dueDateClass(task.DueDate) }>{ formatDueShort(task.DueDate) }</span>
+							<span class="w-14 text-right text-xs text-base-content/50 truncate hidden sm:block">{ task.RequestedBy }</span>
+						</label>
+					}
+				</div>
+			}
+		}
+		<div class="mt-8 flex items-center justify-between">
+			<div>
+				<span id="plan-count" class="text-sm text-base-content/60">0件選択中</span>
+				<span id="plan-warning" class="text-xs text-warning ml-2 hidden">少し多いかもしれません</span>
+			</div>
+			<button id="plan-submit" type="submit" disabled class="btn btn-primary btn-sm">
+				プランを確定する →
+			</button>
+		</div>
+	</form>
+	<script>
+		function updatePlanCount() {
+			var count = document.querySelectorAll('.plan-checkbox:checked').length;
+			document.getElementById('plan-count').textContent = count + '件選択中';
+			document.getElementById('plan-submit').disabled = count === 0;
+			var warn = document.getElementById('plan-warning');
+			if (count > 5) {
+				warn.classList.remove('hidden');
+			} else {
+				warn.classList.add('hidden');
+			}
+		}
+	</script>
+}
+
+type taskGroup struct {
+	Label string
+	Tasks []*model.Task
+}
+
+func groupTasks(tasks []*model.Task) []taskGroup {
+	today := todayMidnight()
+
+	var overdue, rest []*model.Task
+	for _, t := range tasks {
+		if t.DueDate != "" {
+			d, err := time.Parse("2006-01-02", t.DueDate)
+			if err == nil && d.Before(today) {
+				overdue = append(overdue, t)
+				continue
+			}
+		}
+		rest = append(rest, t)
+	}
+
+	var groups []taskGroup
+	if len(overdue) > 0 {
+		groups = append(groups, taskGroup{Label: "期限切れ", Tasks: overdue})
+	}
+	if len(rest) > 0 {
+		groups = append(groups, taskGroup{Label: "INBOX", Tasks: rest})
+	}
+	return groups
 }

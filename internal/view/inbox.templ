@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+
 	"github.com/yuyanky/todo/internal/model"
 )
 
@@ -11,147 +12,74 @@ type InboxData struct {
 }
 
 templ Inbox(data InboxData) {
-	@Layout("mañana — inbox") {
-		<!-- Add task form -->
-		<form
-			hx-post="/api/add"
-			hx-target="#inbox-list"
-			hx-swap="beforeend"
-			hx-on::after-request="this.reset()"
-			class="mb-5"
-		>
-			<div class="flex flex-col gap-2">
-				<input
-					type="text"
-					name="title"
-					placeholder="新しいタスク..."
-					required
-					class="form-input"
-				/>
-				<div class="flex gap-2">
-					<input
-						type="date"
-						name="due_date"
-						class="form-input text-xs text-stone-400 flex-1"
-					/>
-					<button
-						type="submit"
-						hx-disabled-elt="this"
-						class="submit-btn-sm"
-					>
-						追加
-					</button>
-				</div>
-			</div>
-		</form>
+	@Layout("INBOX", "/inbox") {
+		<div class="flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold font-display">INBOX</h1>
+			if len(data.Tasks) > 0 {
+				<span class="text-xs text-base-content/50 tabular-nums font-display">{ fmt.Sprintf("%d件", len(data.Tasks)) }</span>
+			}
+		</div>
+		<div class="mt-4">
+			@AddTaskInput()
+		</div>
 		if len(data.Tasks) == 0 {
-			<div id="inbox-empty" class="text-center py-16">
-				<p class="text-stone-400 text-sm mb-1">inbox は空です</p>
-				<p class="text-stone-300 text-xs">気になることが出たらここに置きます</p>
+			<div class="flex flex-col items-center justify-center py-16 text-center">
+				<p class="text-sm text-base-content/50">INBOXは空です</p>
+				<p class="text-xs text-base-content/30 mt-1">新しいタスクを追加しましょう</p>
 			</div>
 		}
-		<div id="inbox-list" class="list-container">
+		<div id="inbox-list" class="mt-4">
 			for _, task := range data.Tasks {
 				@InboxRow(task, data.HasPlan)
 			}
 		</div>
-		<script src="/static/sortable.min.js"></script>
-		<script>
-			new Sortable(document.getElementById('inbox-list'), {
-				animation: 150,
-				ghostClass: 'opacity-30',
-				handle: '.drag-handle',
-				onEnd: function() {
-					var ids = [];
-					document.querySelectorAll('#inbox-list > div[data-task-id]').forEach(function(el) {
-						ids.push(parseInt(el.dataset.taskId));
-					});
-					fetch('/api/reorder-inbox', {
-						method: 'POST',
-						headers: {'Content-Type': 'application/json'},
-						body: JSON.stringify({task_ids: ids})
-					});
-				}
-			});
-		</script>
+		if len(data.Tasks) > 0 {
+			<script>
+				document.addEventListener('DOMContentLoaded', function() {
+					var el = document.getElementById('inbox-list');
+					if (el && typeof Sortable !== 'undefined') {
+						new Sortable(el, {
+							animation: 150,
+							handle: '.drag-handle',
+							ghostClass: 'sortable-ghost',
+							onEnd: function() {
+								var ids = Array.from(el.querySelectorAll('[data-id]')).map(function(r) { return parseInt(r.dataset.id); });
+								fetch('/api/reorder-inbox', {
+									method: 'POST',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({ task_ids: ids })
+								});
+							}
+						});
+					}
+				});
+			</script>
+		}
 	}
 }
 
 templ InboxRow(task *model.Task, hasPlan bool) {
-	<div data-task-id={ fmt.Sprintf("%d", task.ID) } class="inbox-row group list-row hover:bg-stone-50/80">
-		<span class="drag-handle cursor-grab active:cursor-grabbing text-stone-200 group-hover:text-stone-400 flex-shrink-0 select-none text-[10px] transition-colors">⠿</span>
-		<div class="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0 mt-[6px]"></div>
-		<div class="flex-1 min-w-0">
-			<span
-				class="text-sm leading-snug block cursor-text hover:text-stone-500 transition-colors"
-				hx-get={ fmt.Sprintf("/api/inbox-edit/%d", task.ID) }
-				hx-target="closest div[data-task-id]"
-				hx-swap="outerHTML"
-			>{ task.Title }</span>
-			if task.DueDate != "" || task.RequestedBy != "" || task.Notes != "" {
-				<div class="meta-row">
-					if task.DueDate != "" {
-						<span class="meta-badge">{ task.DueDate }</span>
-					}
-					if task.RequestedBy != "" {
-						<span>{ task.RequestedBy }</span>
-					}
-					if task.Notes != "" {
-						<span class="text-stone-300">memo</span>
-					}
-				</div>
-			}
-		</div>
-		<div class="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-			if hasPlan {
-				<button
-					hx-post={ fmt.Sprintf("/api/move-today/%d", task.ID) }
-					hx-target="closest div[data-task-id]"
-					hx-swap="outerHTML"
-					class="action-badge"
-				>
-					TODAY
-				</button>
-			}
-			<a href={ templ.SafeURL(fmt.Sprintf("/task/%d", task.ID)) } class="text-stone-300 hover:text-stone-600 transition-colors">
-				<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-				</svg>
-			</a>
-			<button
-				hx-post={ fmt.Sprintf("/api/delete/%d", task.ID) }
-				hx-target="closest div[data-task-id]"
-				hx-swap="outerHTML"
-				hx-confirm="削除しますか？"
-				class="text-stone-300 hover:text-red-500 transition-colors"
-			>
-				<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-				</svg>
-			</button>
-		</div>
+	<div id={ fmt.Sprintf("inbox-%d", task.ID) }
+		class="flex items-center gap-3 min-h-[44px] py-2 border-b border-base-300/30 hover:bg-base-200/50 transition-colors"
+		data-id={ fmt.Sprintf("%d", task.ID) }>
+		<span class="drag-handle w-6 text-center text-base-content/30 cursor-grab select-none">⠿</span>
+		<a href={ templ.SafeURL(fmt.Sprintf("/task/%d", task.ID)) }
+			hx-boost="true"
+			class="flex-1 text-sm truncate">
+			{ task.Title }
+		</a>
+		<span class={ "w-12 text-right text-xs hidden sm:block", dueDateClass(task.DueDate) }>{ formatDueShort(task.DueDate) }</span>
+		<span class="w-14 text-right text-xs text-base-content/50 truncate hidden sm:block">{ task.RequestedBy }</span>
 	</div>
 }
 
-templ InboxRowEdit(task *model.Task, hasPlan bool) {
-	<div data-task-id={ fmt.Sprintf("%d", task.ID) } class="list-row bg-stone-50/80">
-		<form
-			hx-post={ fmt.Sprintf("/api/inbox-edit/%d", task.ID) }
-			hx-target="closest div[data-task-id]"
-			hx-swap="outerHTML"
-			hx-trigger="submit"
-			class="flex-1"
-		>
-			<input type="hidden" name="has_plan" value={ fmt.Sprintf("%t", hasPlan) }/>
-			<input
-				type="text"
-				name="title"
-				value={ task.Title }
-				autofocus
-				class="inline-edit"
-				onkeydown="if(event.key==='Escape'){htmx.ajax('GET','/api/inbox-item/'+this.closest('[data-task-id]').dataset.taskId,{target:this.closest('[data-task-id]'),swap:'outerHTML'});}"
-				onblur="this.closest('form').requestSubmit();"
-			/>
-		</form>
-	</div>
+templ AddTaskInput() {
+	<form hx-post="/api/add" hx-target="#inbox-list" hx-swap="beforeend" hx-sync="this:replace"
+		hx-on::after-request="if(event.detail.successful){this.reset();this.querySelector('input').focus()}"
+		class="flex items-center gap-3 min-h-[44px] py-2 border border-base-300/30 rounded-lg px-3">
+		<span class="text-base-content/30 text-sm select-none">+</span>
+		<input type="text" name="title" required placeholder="タスクを追加..."
+			class="flex-1 text-sm sm:text-sm text-base bg-transparent outline-none placeholder:text-base-content/30"
+			autocomplete="off"/>
+	</form>
 }

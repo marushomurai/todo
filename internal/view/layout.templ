@@ -1,46 +1,52 @@
 package view
 
-templ Layout(title string) {
+templ Layout(title string, currentPath string) {
 	<!DOCTYPE html>
-	<html lang="ja">
-		<head>
-			<meta charset="UTF-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<title>{ title }</title>
-			<link rel="preconnect" href="https://fonts.googleapis.com"/>
-			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-			<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap"/>
-			<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap"/>
-			<link rel="stylesheet" href="/static/style.css"/>
-			<script src="/static/htmx.min.js"></script>
-		</head>
-		<body class="bg-stone-100 text-stone-800 min-h-screen">
-			<div class="max-w-md mx-auto px-5 py-8">
-				<header class="flex items-baseline justify-between mb-6">
-					<div>
-						<h1 class="text-2xl font-black tracking-tighter leading-none" style="font-family: 'Outfit', sans-serif;">mañana</h1>
-						<p class="text-stone-300 text-[10px] mt-1 tracking-widest uppercase" style="font-family: 'Outfit', sans-serif;">今日はこれだけやる</p>
-					</div>
-					<nav class="flex gap-4" id="main-nav">
-						<a href="/" class="nav-pill">TODAY</a>
-						<a href="/inbox" class="nav-pill">INBOX</a>
-					</nav>
-				</header>
-				<script>
-					(function(){
-						var p = location.pathname;
-						document.querySelectorAll('#main-nav a').forEach(function(a) {
-							var h = a.getAttribute('href');
-							if (h === '/' ? (p === '/' || p.startsWith('/task/')) : p.startsWith(h)) {
-								a.setAttribute('aria-current', 'page');
-							}
-						});
-					})();
-				</script>
-				<main>
-					{ children... }
-				</main>
-			</div>
-		</body>
+	<html lang="ja" data-theme="manana">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{ title } — mañana</title>
+		<link rel="preload"
+			href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+			as="style" onload="this.rel='stylesheet'"/>
+		<noscript>
+			<link rel="stylesheet"
+				href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"/>
+		</noscript>
+		<link rel="stylesheet" href="/static/style.css"/>
+		<script src="/static/htmx.min.js"></script>
+	</head>
+	<body class="bg-base-100 text-base-content font-body min-h-screen">
+		@NavBar(currentPath)
+		<main class="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+			{ children... }
+		</main>
+		<div id="toast-region" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+		<script src="/static/sortable.min.js"></script>
+	</body>
 	</html>
+}
+
+templ NavBar(currentPath string) {
+	<nav class="navbar sticky top-0 z-10 bg-base-100/90 backdrop-blur-sm border-b border-base-300/50 h-14 px-4 sm:px-6">
+		<a href="/" class="text-lg font-semibold font-display">mañana</a>
+		<div class="flex-1"></div>
+		<div class="flex items-center gap-1">
+			<a href="/"
+				hx-boost="true"
+				class={ "px-3 py-2 text-sm transition-colors",
+					templ.KV("font-semibold text-primary border-b-2 border-primary", currentPath == "/"),
+					templ.KV("text-base-content/60 hover:text-base-content", currentPath != "/") }>
+				TODAY
+			</a>
+			<a href="/inbox"
+				hx-boost="true"
+				class={ "px-3 py-2 text-sm transition-colors",
+					templ.KV("font-semibold text-primary border-b-2 border-primary", currentPath == "/inbox"),
+					templ.KV("text-base-content/60 hover:text-base-content", currentPath != "/inbox") }>
+				INBOX
+			</a>
+		</div>
+	</nav>
 }
